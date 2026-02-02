@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#f3f0ff">
+    <title>Cozinha da Gabi</title>
+    <style>
+        :root {
+            --roxo-overlay: rgba(75, 0, 130, 0.6);
+            --lilas-fundo: #f3f0ff;
+            --lilas-botao: #a29bfe;
+            --texto-cor: #2d004d;
+        }
+
+        body, html { margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; background: var(--lilas-fundo); color: var(--texto-cor); -webkit-tap-highlight-color: transparent; }
+        .tela { display: none; min-height: 100vh; animation: fadeIn 0.2s; }
+        .tela.ativa { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .container { max-width: 500px; margin: auto; padding: 20px; padding-bottom: 50px; }
+
+        .card-receita {
+            background: white; border-radius: 25px; display: flex; align-items: center;
+            padding: 15px; margin-bottom: 15px; box-shadow: 0 8px 16px rgba(162, 155, 254, 0.1); cursor: pointer;
+        }
+        .foto-preview { width: 75px; height: 75px; border-radius: 18px; margin-right: 15px; overflow: hidden; border: 1px solid #ddd; background: #eee; }
+        .foto-preview img { width: 100%; height: 100%; object-fit: cover; }
+
+        .box-detalhe { background: white; padding: 25px; border-radius: 30px; margin-top: 15px; text-align: center; position: relative; }
+        .area-foto-capa { border: 2px dashed #ddd; border-radius: 20px; padding: 15px; margin: 15px 0; cursor: pointer; display: flex; align-items: center; justify-content: center; min-height: 120px; }
+        .area-foto-capa.tem-foto { border: none; padding: 0; }
+        #img-interna { width: 100%; border-radius: 15px; display: none; }
+
+        .label-secao { font-weight: bold; color: var(--lilas-botao); text-transform: uppercase; font-size: 0.8rem; display: block; margin: 20px 0 10px; text-align: left; }
+        .campo-editavel { width: 100%; border: none; border-radius: 10px; padding: 12px; font-family: inherit; background: #f9f7ff; box-sizing: border-box; resize: none; font-size: 1rem; }
+        .campo-editavel:disabled { background: #fdfcff; color: #444; cursor: default; }
+        
+        .btn-lilas { background: var(--lilas-botao); color: white; border: none; padding: 12px; border-radius: 20px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; transition: 0.3s; }
+        .btn-lilas:active { transform: scale(0.98); opacity: 0.9; }
+        
+        #aviso-geral { 
+            display: none; position: fixed; top: 30px; left: 50%; transform: translateX(-50%);
+            background: #4caf50; color: white; padding: 15px 30px; border-radius: 50px; 
+            font-weight: bold; font-size: 0.9rem; z-index: 2000; box-shadow: 0 4px 15px rgba(0,0,0,0.2); 
+            white-space: nowrap; text-align: center;
+        }
+
+        .hist-item { display: flex; align-items: center; background: white; padding: 12px; border-radius: 15px; margin-bottom: 10px; border: 1px solid #eee; animation: slideIn 0.3s; text-align: left;}
+        @keyframes slideIn { from { transform: translateY(-10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .hist-foto { width: 60px; height: 60px; border-radius: 10px; margin-right: 15px; object-fit: cover; }
+    </style>
+</head>
+<body>
+
+    <div id="aviso-geral">Sucesso!</div>
+
+    <div id="capa" class="tela ativa">
+        <div style="background: linear-gradient(var(--roxo-overlay), var(--roxo-overlay)), url('https://images.unsplash.com/photo-1550617931-e17a7b70dce2?auto=format&fit=crop&w=1350&q=80') center/cover; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: white;">
+            <h1 style="font-size: 2.5rem; margin-bottom: 10px;">Cozinha da Gabi</h1>
+            <p style="margin-bottom: 30px; opacity: 0.9; font-style: italic;">"Onde cada pitada tem um toque de carinho"</p>
+            <button class="btn-lilas" style="width: auto; padding: 15px 50px;" onclick="navegar('selecao')">Abrir Meu Caderno ✨</button>
+        </div>
+    </div>
+
+    <div id="selecao" class="tela">
+        <div class="container">
+            <h2 style="text-align: center; margin: 40px 0;">O que vamos preparar?</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div style="background: white; padding: 40px 20px; border-radius: 30px; text-align: center; cursor: pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.05);" onclick="definirCategoria('doce')">
+                    <span style="font-size: 3rem; display: block;">🧁</span><br><b>Doces</b>
+                </div>
+                <div style="background: white; padding: 40px 20px; border-radius: 30px; text-align: center; cursor: pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.05);" onclick="definirCategoria('salgado')">
+                    <span style="font-size: 3rem; display: block;">🥐</span><br><b>Salgados</b>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="lista" class="tela">
+        <div class="container">
+            <button onclick="navegar('selecao')" style="background:none; border:none; color:var(--lilas-botao); font-weight:bold; cursor:pointer; padding: 10px 0;">← Voltar</button>
+            <h1 id="titulo-lista" style="margin: 10px 0 20px;">Minhas Delícias</h1>
+            <button class="btn-lilas" style="background: var(--texto-cor); margin-bottom: 25px; padding: 15px;" onclick="prepararNova()">➕ Incluir Nova Receita</button>
+            <div id="lista-receitas-container"></div>
+        </div>
+    </div>
+
+    <div id="detalhe" class="tela">
+        <div class="container">
+            <button onclick="navegar('lista')" style="background:none; border:none; color:var(--lilas-botao); font-weight:bold; cursor:pointer; padding: 10px 0;">← Voltar</button>
+            <div class="box-detalhe">
+                <input type="text" id="edit-nome" class="campo-editavel" placeholder="Nome da Receita" style="font-size:1.5rem; font-weight:bold; text-align: center;" disabled>
+                
+                <div id="placeholder-foto" class="area-foto-capa" onclick="checkFotoCapaClick()">
+                    <span id="txt-upload">📸 Foto da Capa</span>
+                    <input type="file" id="file-capa" accept="image/*" style="display:none" onchange="processarFotoCapa(event)">
+                    <img id="img-interna" src="">
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <button id="btn-modo-edit" class="btn-lilas" style="background: #e1dbff; color: #2d004d;" onclick="habilitarEdicao()">✏️ Alterar Receita</button>
+                    <button id="btn-salvar" class="btn-lilas" style="display:none; background: #4caf50;" onclick="salvarReceita()">💾 Gravar Alterações</button>
+                    <button class="btn-lilas" style="background: #ffdada; color: #cc0000;" onclick="excluirReceita()">🗑️ Excluir</button>
+                </div>
+
+                <label class="label-secao">🛒 Ingredientes</label>
+                <textarea id="edit-ingredientes" class="campo-editavel" rows="6" placeholder="Liste os ingredientes aqui..." disabled></textarea>
+
+                <label class="label-secao">🥣 Modo de Fazer</label>
+                <textarea id="edit-preparo" class="campo-editavel" rows="8" placeholder="Passo a passo da receita..." disabled></textarea>
+
+                <button class="btn-lilas" id="btn-feito" style="margin-top:25px; background: #6c5ce7; padding: 15px;" onclick="perguntaFotoHist()">✅ Fiz essa receita hoje!</button>
+                <input type="file" id="file-hist" accept="image/*" style="display:none" onchange="registrarHistFoto(event)">
+            </div>
+
+            <div style="margin-top: 30px;">
+                <h4 style="border-bottom: 2px solid var(--lilas-botao); padding-bottom: 5px;">📅 Histórico de Produção</h4>
+                <div id="historico-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let db = JSON.parse(localStorage.getItem('lavanda_vFinal_PRO_4')) || [];
+        let catAtiva = 'doce';
+        let idAtual = null;
+        let tempFotoCapa = "";
+
+        function mostrarMensagem(texto) {
+            const aviso = document.getElementById('aviso-geral');
+            aviso.innerText = texto;
+            aviso.style.display = 'block';
+            setTimeout(() => { aviso.style.display = 'none'; }, 2800);
+        }
+
+        function navegar(id) {
+            window.scrollTo(0,0);
+            document.querySelectorAll('.tela').forEach(t => t.classList.remove('ativa'));
+            document.getElementById(id).classList.add('ativa');
+            if(id === 'lista') listar();
+        }
+
+        function definirCategoria(c) {
+            catAtiva = c;
+            document.getElementById('titulo-lista').innerText = c === 'doce' ? "Doces da Gabi 🧁" : "Salgados da Gabi 🥐";
+            navegar('lista');
+        }
+
+        function listar() {
+            const cont = document.getElementById('lista-receitas-container');
+            cont.innerHTML = "";
+            const filtradas = db.filter(r => r.tipo === catAtiva);
+            
+            if(filtradas.length === 0) {
+                cont.innerHTML = `<div style="text-align:center; padding: 40px; opacity:0.5;">Ainda não há receitas aqui.</div>`;
+                return;
+            }
+
+            filtradas.forEach(r => {
+                cont.innerHTML += `
+                    <div class="card-receita" onclick="abrir('${r.id}')">
+                        <div class="foto-preview"><img src="${r.foto || 'https://via.placeholder.com/75'}"></div>
+                        <div style="flex:1; text-align:left;">
+                            <h3 style="margin:0; font-size:1.1rem;">${r.nome}</h3>
+                            <p style="margin:5px 0 0; font-size:0.8rem; color:var(--lilas-botao);">Ver receita completa ➔</p>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        function prepararNova() {
+            idAtual = null; tempFotoCapa = "";
+            document.getElementById('edit-nome').value = "";
+            document.getElementById('edit-ingredientes').value = "";
+            document.getElementById('edit-preparo').value = "";
+            habilitarEdicao();
+            document.getElementById('img-interna').style.display = 'none';
+            document.getElementById('txt-upload').style.display = 'block';
+            document.getElementById('placeholder-foto').classList.remove('tem-foto');
+            document.getElementById('historico-container').innerHTML = "";
+            document.getElementById('btn-feito').style.display = 'none';
+            navegar('detalhe');
+        }
+
+        function abrir(id) {
+            idAtual = id;
+            const r = db.find(x => x.id === id);
+            if(!r) return;
+            document.getElementById('edit-nome').value = r.nome;
+            document.getElementById('edit-ingredientes').value = r.ingredientes;
+            document.getElementById('edit-preparo').value = r.preparo;
+            document.getElementById('edit-nome').disabled = true;
+            document.getElementById('edit-ingredientes').disabled = true;
+            document.getElementById('edit-preparo').disabled = true;
+            document.getElementById('btn-modo-edit').style.display = 'block';
+            document.getElementById('btn-salvar').style.display = 'none';
+            tempFotoCapa = r.foto || "";
+            const img = document.getElementById('img-interna');
+            if(tempFotoCapa) {
+                img.src = tempFotoCapa; img.style.display = 'block';
+                document.getElementById('txt-upload').style.display = 'none';
+                document.getElementById('placeholder-foto').classList.add('tem-foto');
+            } else {
+                img.style.display = 'none';
+                document.getElementById('txt-upload').style.display = 'block';
+                document.getElementById('placeholder-foto').classList.remove('tem-foto');
+            }
+            document.getElementById('historico-container').innerHTML = r.hist || `<p style="opacity:0.4; font-size:0.9rem; text-align:center;">Nenhuma produção registrada ainda.</p>`;
+            document.getElementById('btn-feito').style.display = 'block';
+            navegar('detalhe');
+        }
+
+        function habilitarEdicao() {
+            document.getElementById('edit-nome').disabled = false;
+            document.getElementById('edit-ingredientes').disabled = false;
+            document.getElementById('edit-preparo').disabled = false;
+            document.getElementById('btn-modo-edit').style.display = 'none';
+            document.getElementById('btn-salvar').style.display = 'block';
+        }
+
+        function checkFotoCapaClick() {
+            if(!document.getElementById('edit-nome').disabled) document.getElementById('file-capa').click();
+        }
+
+        function salvarReceita() {
+            const nome = document.getElementById('edit-nome').value;
+            if(!nome) return alert("Dê um nome para sua delícia!");
+            const index = db.findIndex(x => x.id === idAtual);
+            const isNova = (idAtual === null || index === -1);
+            const novoId = isNova ? Date.now().toString() : idAtual;
+            const dados = {
+                id: novoId, tipo: catAtiva, nome: nome, foto: tempFotoCapa,
+                ingredientes: document.getElementById('edit-ingredientes').value,
+                preparo: document.getElementById('edit-preparo').value,
+                hist: !isNova ? (db[index].hist || "") : ""
+            };
+            if(isNova) { db.push(dados); mostrarMensagem("Receita incluída com sucesso! ✨"); }
+            else { db[index] = dados; mostrarMensagem("Alteração feita com sucesso! ✨"); }
+            localStorage.setItem('lavanda_vFinal_PRO_4', JSON.stringify(db));
+            setTimeout(() => { navegar('lista'); }, 1200);
+        }
+
+        function processarFotoCapa(e) {
+            const file = e.target.files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = () => {
+                tempFotoCapa = reader.result;
+                const img = document.getElementById('img-interna');
+                img.src = tempFotoCapa; img.style.display = 'block';
+                document.getElementById('txt-upload').style.display = 'none';
+                document.getElementById('placeholder-foto').classList.add('tem-foto');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function perguntaFotoHist() {
+            if(confirm("Deseja registrar uma foto da sua produção de hoje? 📸")) document.getElementById('file-hist').click();
+            else registrarFinal(null);
+        }
+
+        function registrarHistFoto(e) {
+            const file = e.target.files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = () => registrarFinal(reader.result);
+            reader.readAsDataURL(file);
+        }
+
+        function registrarFinal(foto) {
+            const data = new Date().toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+            const itemHtml = `<div class="hist-item">${foto ? `<img src="${foto}" class="hist-foto">` : ''}<div><strong>${data}</strong><br><span style="font-size:0.85rem; color:#555;">Receita preparada com sucesso!</span></div></div>`;
+            const idx = db.findIndex(x => x.id === idAtual);
+            if (idx !== -1) {
+                db[idx].hist = itemHtml + (db[idx].hist || "");
+                localStorage.setItem('lavanda_vFinal_PRO_4', JSON.stringify(db));
+                const container = document.getElementById('historico-container');
+                if(container.innerHTML.includes("Nenhuma produção")) container.innerHTML = "";
+                container.insertAdjacentHTML('afterbegin', itemHtml);
+                mostrarMensagem("Atualização feita com sucesso! 📸");
+            }
+        }
+
+        function excluirReceita() {
+            if(confirm("Excluir esta receita para sempre?")) {
+                db = db.filter(x => x.id !== idAtual);
+                localStorage.setItem('lavanda_vFinal_PRO_4', JSON.stringify(db));
+                mostrarMensagem("Receita removida com sucesso! 🗑️");
+                setTimeout(() => { navegar('lista'); }, 1000);
+            }
+        }
+    </script>
+</body>
+</html>

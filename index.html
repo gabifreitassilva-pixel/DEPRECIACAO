@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Principal - Auditor Fiscal Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        
+        body {
+            background-color: #000000;
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            background-image: radial-gradient(circle at top right, #1a1a1a, #000000);
+        }
+        
+        .menu-card { 
+            background-color: #0a0a0a;
+            border: 1px solid #222;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+        }
+        
+        .menu-card:hover { 
+            border-color: #FF8C00; 
+            transform: translateY(-10px);
+            background-color: #111;
+        }
+
+        .orange-accent { color: #FF8C00; }
+        .bg-orange-accent { background-color: #FF8C00; }
+
+        .icon-box {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 15px;
+            font-size: 24px;
+            margin-bottom: 20px;
+            background: #1a1a1a;
+            color: #FF8C00;
+            transition: all 0.3s;
+        }
+
+        .menu-card:hover .icon-box {
+            background: #FF8C00;
+            color: #000;
+            box-shadow: 0 0 20px rgba(255, 140, 0, 0.4);
+        }
+
+        .status-dot {
+            height: 8px;
+            width: 8px;
+            background-color: #10b981;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+            box-shadow: 0 0 10px #10b981;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-center">
+
+    <div class="container mx-auto px-4 py-12">
+        <header class="text-center mb-16">
+            <div class="inline-block bg-orange-500 p-3 rounded-2xl mb-6 shadow-[0_0_30px_rgba(255,140,0,0.3)]">
+                <i class="fas fa-shield-halved text-black text-4xl"></i>
+            </div>
+            <h1 class="text-5xl font-black tracking-tighter uppercase italic mb-2">
+                Auditor <span class="orange-accent">Fiscal</span> Pro
+            </h1>
+            <p class="text-zinc-500 uppercase tracking-[0.5em] text-xs font-bold">Sistema de Inteligência Tributária & Auditoria Reversa</p>
+            <div class="mt-4 flex justify-center items-center gap-4 text-[10px] font-bold text-zinc-600 uppercase">
+                <span><span class="status-dot"></span> Cloud Database Online</span>
+                <span class="border-l border-zinc-800 pl-4">v7.2.0</span>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            
+            <a href="auditor.html" class="menu-card p-10 rounded-3xl group">
+                <div class="icon-box">
+                    <i class="fas fa-magnifying-glass-chart"></i>
+                </div>
+                <h2 class="text-2xl font-black uppercase mb-3 group-hover:text-orange-500 transition">Nova Auditoria</h2>
+                <p class="text-zinc-500 text-sm leading-relaxed">
+                    Processe arquivos XML (NFe/SAT) ou planilhas CSV para identificar inconsistências de NCM, PIS/COFINS Monofásico e ICMS ST.
+                </p>
+                <div class="mt-8 flex items-center text-xs font-black orange-accent tracking-widest uppercase">
+                    Acessar Ferramenta <i class="fas fa-arrow-right ml-2 group-hover:translate-x-2 transition-transform"></i>
+                </div>
+            </a>
+
+            <a href="hstórico.htm" class="menu-card p-10 rounded-3xl group">
+                <div class="icon-box">
+                    <i class="fas fa-database"></i>
+                </div>
+                <h2 class="text-2xl font-black uppercase mb-3 group-hover:text-orange-500 transition">Histórico de Dados</h2>
+                <p class="text-zinc-500 text-sm leading-relaxed">
+                    Visualize auditorias salvas, acompanhe o volume de recuperação acumulado por empresa e gere relatórios de conformidade.
+                </p>
+                <div class="mt-8 flex items-center text-xs font-black orange-accent tracking-widest uppercase">
+                    Consultar Banco <i class="fas fa-arrow-right ml-2 group-hover:translate-x-2 transition-transform"></i>
+                </div>
+            </a>
+
+        </div>
+
+        <footer class="mt-20 text-center">
+            <p class="text-zinc-700 text-[10px] uppercase font-bold tracking-widest">
+                Desenvolvido para Especialistas em Recuperação Tributária
+            </p>
+        </footer>
+    </div>
+
+</body>
+</html>

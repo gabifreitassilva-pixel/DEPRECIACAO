@@ -67,7 +67,15 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, query, onSnapshot, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
+const firebaseConfig = {
+  apiKey: "AIzaSyAkgh6778FzobRxLl3trFE0KQ2D9PJOYrA",
+  authDomain: "auditor-fiscal-pro.firebaseapp.com",
+  projectId: "auditor-fiscal-pro",
+  storageBucket: "auditor-fiscal-pro.firebasestorage.app",
+  messagingSenderId: "901682265807",
+  appId: "1:901682265807:web:0b399cf95a7213fdeec1ba",
+  measurementId: "G-MZ3MTGMEJ0"
+};
         const firebaseConfig = JSON.parse(window.__firebase_config || '{}');
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'auditor-sp-pro-v7';
         const app = initializeApp(firebaseConfig);
@@ -101,3 +109,4 @@
     </script>
 </body>
 </html>
+

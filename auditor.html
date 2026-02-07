@@ -71,7 +71,6 @@
 </head>
 <body class="min-h-screen flex flex-col">
 
-    <!-- Header -->
     <header class="bg-black text-white p-6 border-b border-zinc-800 shadow-2xl sticky top-0 z-50">
         <div class="container mx-auto flex justify-between items-center">
             <div class="flex items-center gap-4">
@@ -95,9 +94,7 @@
 
     <main class="container mx-auto py-8 px-4 flex-1">
         
-        <!-- Blocos Superiores -->
         <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <!-- Dados Detectados -->
             <div class="dashboard-card p-6 rounded-xl orange-border-top shadow-lg">
                 <h2 class="font-bold mb-4 flex items-center gap-2">
                     <i class="fas fa-id-card orange-accent"></i>Dados Identificados
@@ -122,7 +119,6 @@
                 </div>
             </div>
 
-            <!-- Importação de XML -->
             <div class="dashboard-card p-6 rounded-xl orange-border-top flex flex-col shadow-lg">
                 <h2 class="font-bold mb-4 flex items-center gap-2">
                     <i class="fas fa-folder-open orange-accent"></i>Importar Notas (XML)
@@ -137,7 +133,6 @@
                 </button>
             </div>
 
-            <!-- Gerenciamento com novo botão -->
             <div class="dashboard-card p-6 rounded-xl orange-border-top shadow-lg">
                 <h2 class="font-bold mb-4 flex items-center gap-2">
                     <i class="fas fa-gears orange-accent"></i>Gerenciamento
@@ -147,7 +142,6 @@
                         <i class="fas fa-file-excel"></i> Exportar para Excel
                     </button>
 
-                    <!-- NOVO BOTÃO DE IMPORTAÇÃO DE EXCEL -->
                     <button id="btn-import-excel" onclick="document.getElementById('excel-import-input').click()" class="w-full btn-orange py-3 rounded flex items-center justify-center gap-2">
                         <i class="fas fa-file-import"></i> Importar Auditoria Excel
                     </button>
@@ -164,7 +158,6 @@
             </div>
         </section>
 
-        <!-- KPIs -->
         <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <div class="dashboard-card p-5 rounded-xl orange-border-left shadow-lg">
                 <p class="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">Lote de Notas</p>
@@ -184,7 +177,6 @@
             </div>
         </section>
 
-        <!-- Tabela -->
         <section class="dashboard-card rounded-xl overflow-hidden shadow-2xl">
             <div class="p-5 border-b border-zinc-800 bg-zinc-900/40 flex justify-between items-center">
                 <h2 class="font-bold text-zinc-200 uppercase text-xs tracking-widest">Relatório: Original vs Sugestão do Auditor</h2>
@@ -214,7 +206,6 @@
         </section>
     </main>
 
-    <!-- Modal Sucesso -->
     <div id="completion-modal" class="fixed inset-0 z-[200] flex items-center justify-center hidden p-4">
         <div class="bg-zinc-900 border border-orange-500 p-8 rounded-3xl shadow-2xl max-w-sm w-full text-center">
             <div class="w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-[0_0_20px_rgba(255,140,0,0.5)]">
@@ -247,7 +238,6 @@
 
         const MONTH_NAMES = ["JANEIRO", "FEVEREIRO", "MARÇO", "ABRIL", "MAIO", "JUNHO", "JULHO", "AGOSTO", "SETEMBRO", "OUTUBRO", "NOVEMBRO", "DEZEMBRO"];
 
-        // IA Base de Dados para Auditoria
         const INTELLIGENCE_DB = [
             { keywords: ["SORVETE", "PICOLÉ", "POTE 2L", "MILHO", "GELADO"], sNCM: "2105.00.10", icmsST: true, pisMono: false, sugPIS: "07", sugCOF: "07", sugICMS: "060", sugIPI: "53", rI: 0.12 },
             { keywords: ["CERVEJA", "CHOPP", "MALZBIER", "SKOL", "BRAHMA"], sNCM: "2203.00.00", icmsST: true, pisMono: true, sugPIS: "04", sugCOF: "04", sugICMS: "060", sugIPI: "52", rP: 0.0165, rC: 0.076, rI: 0.18 },
@@ -261,7 +251,6 @@
             } catch (e) { console.error("Firebase offline"); }
         };
 
-        // --- Fluxo de Importação XML ---
         window.handleFileChange = (event) => {
             filesQueue = Array.from(event.target.files);
             if (filesQueue.length > 0) {
@@ -290,7 +279,6 @@
             finalizeAudit();
         };
 
-        // --- NOVO: Fluxo de Importação Excel (Auditoria Reversa) ---
         window.handleExcelImport = (event) => {
             const file = event.target.files[0];
             if (!file) return;
@@ -308,14 +296,9 @@
             const lines = csvText.split(/\r?\n/);
             if (lines.length < 2) return;
 
-            // Pula cabeçalho
             for (let i = 1; i < lines.length; i++) {
                 if (!lines[i].trim()) continue;
                 const cols = lines[i].split(";");
-                
-                // Formato do Excel exportado:
-                // 0:Empresa; 1:CNPJ; 2:Regime; 3:Mes; 4:No Nota; 5:Produto; 6:NCM Orig; 7:PIS Orig; 8:PIS Sug; 
-                // 9:COF Orig; 10:COF Sug; 11:ICMS Orig; 12:ICMS Sug; 13:IPI Orig; 14:IPI Sug; 15:Status; 16:Credito
                 
                 if (!state.company) {
                     state.company = cols[0] || 'N/A';
@@ -324,13 +307,12 @@
                 }
                 state.competences.add(cols[3]);
                 
-                // Simula um objeto de item para re-auditar
                 const reItem = {
                     docId: cols[4],
                     xProd: cols[5],
                     ncm: cols[6],
                     oP: cols[7], oC: cols[9], oI: cols[11], oIPI: cols[13],
-                    vProd: 100 // Valor genérico se não estiver na planilha
+                    vProd: 100 
                 };
 
                 performCoreAudit(reItem, "Importação Excel", cols[3]);
@@ -393,7 +375,6 @@
 
             const matchedRule = INTELLIGENCE_DB.find(r => r.keywords.some(k => item.xProd.toUpperCase().includes(k)));
 
-            // Validação NCM
             if (!item.ncm || item.ncm === "0" || item.ncm === "00000000") {
                 status = "NCM ZERADO"; critical = true;
                 if(matchedRule) sNCM_UI = matchedRule.sNCM;
@@ -401,7 +382,6 @@
                 status = "NCM DIVERGENTE"; critical = true; sNCM_UI = matchedRule.sNCM;
             }
 
-            // Validação Tributos
             if (matchedRule) {
                 if (state.regime.includes("SIMPLES")) {
                     if (matchedRule.icmsST && item.oI !== "500") {

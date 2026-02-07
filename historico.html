@@ -11,7 +11,7 @@
         body { background-color: #000000; color: #ffffff; font-family: 'Inter', sans-serif; }
         .dashboard-card { background-color: #0a0a0a; border: 1px solid #222; }
         .orange-accent { color: #FF8C00; }
-        .btn-orange { background-color: #FF8C00; color: #000; font-weight: 900; text-transform: uppercase; transition: 0.2s; }
+        .btn-orange { background-color: #FF8C00; color: #000; font-weight: 900; text-transform: uppercase; transition: 0.2s; cursor: pointer; border: none; }
         .btn-orange:hover { background-color: #ff9d26; transform: translateY(-2px); }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
@@ -50,7 +50,7 @@
         <section class="dashboard-card rounded-xl overflow-hidden shadow-2xl">
             <div class="p-5 border-b border-zinc-800 bg-zinc-900/40 flex justify-between items-center">
                 <h2 class="font-bold text-zinc-200 uppercase text-xs">Registros Gravados</h2>
-                <button onclick="window.fetchHistory()" class="text-orange-500 text-xs font-bold hover:underline"><i class="fas fa-sync mr-1"></i> Atualizar</button>
+                <button onclick="window.fetchHistory()" class="text-orange-500 text-xs font-bold hover:underline cursor-pointer"><i class="fas fa-sync mr-1"></i> Atualizar</button>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-sm">
@@ -67,24 +67,33 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, query, onSnapshot, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-const firebaseConfig = {
-  apiKey: "AIzaSyAkgh6778FzobRxLl3trFE0KQ2D9PJOYrA",
-  authDomain: "auditor-fiscal-pro.firebaseapp.com",
-  projectId: "auditor-fiscal-pro",
-  storageBucket: "auditor-fiscal-pro.firebasestorage.app",
-  messagingSenderId: "901682265807",
-  appId: "1:901682265807:web:0b399cf95a7213fdeec1ba",
-  measurementId: "G-MZ3MTGMEJ0"
-};
-        const firebaseConfig = JSON.parse(window.__firebase_config || '{}');
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'auditor-sp-pro-v7';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAkgh6778FzobRxLl3trFE0KQ2D9PJOYra",
+            authDomain: "auditor-fiscal-pro.firebaseapp.com",
+            projectId: "auditor-fiscal-pro",
+            storageBucket: "auditor-fiscal-pro.firebasestorage.app",
+            messagingSenderId: "901682265807",
+            appId: "1:901682265807:web:0b399cf95a7213fdeec1ba",
+            measurementId: "G-MZ3MTGMEJ0"
+        };
+
+        const appId = 'auditor-sp-pro-v7';
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
         let currentUser = null;
 
-        window.onload = async () => { try { await signInAnonymously(auth); onAuthStateChanged(auth, u => { currentUser = u; if(u) window.fetchHistory(); }); } catch(e) {} };
+        window.onload = async () => { 
+            try { 
+                await signInAnonymously(auth); 
+                onAuthStateChanged(auth, u => { 
+                    currentUser = u; 
+                    if(u) window.fetchHistory(); 
+                }); 
+            } catch(e) { console.error(e); } 
+        };
 
         window.fetchHistory = () => {
             if(!currentUser) return;
@@ -96,7 +105,7 @@ const firebaseConfig = {
                     const data = d.data();
                     total += data.valor || 0;
                     const tr = document.createElement('tr');
-                    tr.innerHTML = `<td class="p-4">${new Date(data.data).toLocaleDateString()}</td><td class="p-4 font-bold">${data.empresa}</td><td class="p-4 text-right text-green-500 font-bold">${data.valor.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}</td><td class="p-4 text-center"><button onclick="window.deleteAudit('${d.id}')" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button></td>`;
+                    tr.innerHTML = `<td class="p-4">${new Date(data.data).toLocaleDateString()}</td><td class="p-4 font-bold">${data.empresa}</td><td class="p-4 text-right text-green-500 font-bold">${data.valor.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}</td><td class="p-4 text-center"><button onclick="window.deleteAudit('${d.id}')" class="text-red-500 hover:text-red-700 cursor-pointer"><i class="fas fa-trash"></i></button></td>`;
                     tbody.appendChild(tr);
                 });
                 document.getElementById('total-audits').innerText = snap.size;
@@ -105,8 +114,13 @@ const firebaseConfig = {
             });
         };
 
-        window.deleteAudit = async (id) => { if(confirm("Excluir?")) await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'audits', id)); };
+        window.deleteAudit = async (id) => { 
+            if(confirm("Deseja realmente excluir este registro?")) {
+                try {
+                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'audits', id)); 
+                } catch (e) { alert("Erro ao deletar."); }
+            }
+        };
     </script>
 </body>
 </html>
-

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Fiscal Integrado | FISCAL AUDIT PRO</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        body { background-color: #050505; color: #ffffff; font-family: 'Inter', sans-serif; display: flex; height: 100vh; overflow: hidden; }
+        
+        /* Sidebar customizada com Scroll sutil */
+        .sidebar { width: 300px; background: #000; border-right: 1px solid #1f2937; flex-shrink: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #333 #000; }
+        .sidebar::-webkit-scrollbar { width: 4px; }
+        .sidebar::-webkit-scrollbar-thumb { background: #333; }
+
+        .main-content { flex: 1; overflow: hidden; background: #000; }
+        
+        /* Itens de Menu */
+        .nav-link { padding: 12px 25px; font-size: 11px; font-weight: 700; color: #666; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: 0.2s; border-left: 3px solid transparent; text-transform: uppercase; }
+        .nav-link:hover, .nav-link.active { background: #0a0a0a; color: #f97316; border-left-color: #f97316; }
+        
+        .section-title { padding: 20px 25px 10px; font-size: 9px; font-weight: 900; color: #444; text-transform: uppercase; letter-spacing: 2px; }
+        
+        /* Accordion da Base Legal */
+        .base-legal-btn { background: #0a0a0a; margin: 2px 15px; border-radius: 8px; border: 1px solid #111; }
+        .expand-content { display: none; background: #050505; padding: 5px 0; }
+        .sub-item { padding: 8px 40px; font-size: 10px; color: #888; cursor: pointer; transition: 0.2s; display: block; }
+        .sub-item:hover { color: #f97316; background: #0f0f0f; }
+        
+        iframe { width: 100%; height: 100%; border: none; }
+        .orange-accent { color: #f97316; }
+        .blue-accent { color: #3b82f6; }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar flex flex-col">
+        <div class="p-8 border-b border-zinc-900 mb-2">
+            <h1 class="text-2xl font-black italic orange-accent tracking-tighter">FISCAL<span class="text-white">AUDIT</span></h1>
+            <p class="text-[8px] text-zinc-500 font-bold uppercase tracking-[0.3em] mt-1">v7.2 Integrated System</p>
+        </div>
+
+        <nav class="pb-10">
+            <div class="section-title">Ferramentas de Auditoria</div>
+            <div class="nav-link active" onclick="loadPage('auditor.html', this)"><i class="fas fa-magnifying-glass-chart"></i> Nova Auditoria XML</div>
+            <div class="nav-link" onclick="loadPage('extrato simples.html', this)"><i class="fas fa-file-pdf"></i> Extrator PGDAS-D</div>
+            <div class="nav-link" onclick="loadPage('modulo_retificacao.html', this)"><i class="fas fa-rotate-left"></i> Painel de Retificações</div>
+            <div class="nav-link" onclick="loadPage('histórico.html', this)"><i class="fas fa-database"></i> Histórico Global</div>
+
+            <div class="section-title">Base Legal Estadual (SP)</div>
+            <div class="base-legal-btn">
+                <div class="nav-link" onclick="toggleMenu('menu-sp')">
+                    <i class="fas fa-landmark orange-accent"></i> <span>Anexos ICMS-ST</span>
+                    <i class="fas fa-chevron-down ml-auto text-[8px]"></i>
+                </div>
+                <div id="menu-sp" class="expand-content">
+                    <div class="sub-item" onclick="loadPage('auto pecas.html')">Anexo I: Autopeças</div>
+                    <div class="sub-item" onclick="loadPage('bebidas alcolicas exceto cerveja e chope.html')">Anexo III: Bebidas Alc.</div>
+                    <div class="sub-item" onclick="loadPage('cerveja chopes refrigerante agua e outras bebidas.html')">Anexo IV: Bebidas Frias</div>
+                    <div class="sub-item" onclick="loadPage('cigarros e outros produtos derivados do fumo.html')">Anexo V: Fumo</div>
+                    <div class="sub-item" onclick="loadPage('cimentos.html')">Anexo VI: Cimentos</div>
+                    <div class="sub-item" onclick="loadPage('combustivel e lubrificantes.html')">Anexo VII: Combustíveis</div>
+                    <div class="sub-item" onclick="loadPage('energia eletrica.html')">Anexo VIII: Energia</div>
+                    <div class="sub-item" onclick="loadPage('ferramenta.html')">Anexo IX: Ferramentas</div>
+                    <div class="sub-item" onclick="loadPage('lampadas reatores e starters.html')">Anexo X: Lâmpadas</div>
+                    <div class="sub-item" onclick="loadPage('materiais de contrucao e congeneres.html')">Anexo XI: Constr. P1</div>
+                    <div class="sub-item" onclick="loadPage('materiais de contrucao e congeneres vidros e metais.html')">Anexo XI: Constr. P2</div>
+                    <div class="sub-item" onclick="loadPage('Produtos alimenticios.html')">Anexo XII: Alimentos</div>
+                    <div class="sub-item" onclick="loadPage('Perfumaria e higiene pessoal.html')">Anexo XIII: Perfumaria</div>
+                    <div class="sub-item" onclick="loadPage('Eletronicos e eletrodomesticosl.html')">Anexo XV: Eletrônicos</div>
+                    <div class="sub-item" onclick="loadPage('Artigos de papelaria.html')">Anexo XVI: Papelaria</div>
+                    <div class="sub-item" onclick="loadPage('Brinquedos e artigos de esporte.html')">Anexo XVII: Brinquedos</div>
+                    <div class="sub-item" onclick="loadPage('Materiais eletricos.html')">Anexo XVIII: Elétricos</div>
+                    <div class="sub-item" onclick="loadPage('base reduzida.html')">Anexo II: B.C. Reduzida</div>
+                </div>
+            </div>
+
+            <div class="section-title">Base Legal Federal</div>
+            <div class="base-legal-btn">
+                <div class="nav-link" onclick="toggleMenu('menu-fed')">
+                    <i class="fas fa-gavel blue-accent"></i> <span>PIS/COFINS Monof.</span>
+                    <i class="fas fa-chevron-down ml-auto text-[8px]"></i>
+                </div>
+                <div id="menu-fed" class="expand-content">
+                    <div class="sub-item" onclick="loadPage('pis e cofins.html')">Tabela Mestra Federal</div>
+                    <div class="sub-item" onclick="loadPage('baselegal.html')">Portarias e Leis</div>
+                </div>
+            </div>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <iframe id="content-frame" src="auditor.html"></iframe>
+    </main>
+
+    <script>
+        // Função para carregar as páginas no Iframe central
+        function loadPage(url, element) {
+            document.getElementById('content-frame').src = url;
+            
+            // Atualiza classe ativa apenas se for um link de primeiro nível
+            if (element) {
+                document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                element.classList.add('active');
+            }
+        }
+
+        // Função para expandir/recolher os menus da Base Legal
+        function toggleMenu(id) {
+            const menu = document.getElementById(id);
+            const icon = menu.previousElementSibling.querySelector('.fa-chevron-down, .fa-chevron-up');
+            const isOpen = menu.style.display === 'block';
+            
+            // Fecha outros menus abertos se desejar um sistema "accordion"
+            // document.querySelectorAll('.expand-content').forEach(m => m.style.display = 'none');
+
+            menu.style.display = isOpen ? 'none' : 'block';
+            if (icon) {
+                icon.classList.toggle('fa-chevron-down', isOpen);
+                icon.classList.toggle('fa-chevron-up', !isOpen);
+            }
+        }
+    </script>
+</body>
+</html>

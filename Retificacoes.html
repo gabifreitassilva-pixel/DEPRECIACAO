@@ -2,145 +2,38 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Módulo de Retificação | FISCAL AUDIT</title>
+    <title>Retificações Sugeridas</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-        body { background-color: #050505; color: #ffffff; font-family: 'Inter', sans-serif; }
-        .card { background-color: #0a0a0a; border: 1px solid #222; border-radius: 16px; padding: 24px; }
-        .orange-accent { color: #FF8C00; }
-        .bg-orange-accent { background-color: #FF8C00; }
-        .border-orange { border-color: #FF8C00; }
-        .btn-copy { background: #1a1a1a; border: 1px solid #333; color: #aaa; font-size: 10px; padding: 4px 8px; border-radius: 4px; transition: 0.2s; }
-        .btn-copy:hover { border-color: #FF8C00; color: #fff; }
-        .step-number { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; background: #FF8C00; color: #000; font-weight: 900; border-radius: 50%; font-size: 12px; }
-        .table-rect { width: 100%; font-size: 12px; }
-        .table-rect th { color: #555; text-transform: uppercase; font-size: 10px; padding: 12px; border-bottom: 2px solid #222; }
-        .table-rect td { padding: 12px; border-bottom: 1px solid #111; }
-        .highlight-green { color: #10b981; font-weight: bold; }
-    </style>
+    <style>body { background: #050505; color: #fff; font-family: 'Inter', sans-serif; padding: 40px; }</style>
 </head>
-<body class="min-h-screen p-6">
-
-    <header class="max-w-6xl mx-auto flex justify-between items-center mb-10">
-        <div class="flex items-center gap-3">
-            <div class="bg-orange-500 p-2 rounded-lg text-black"><i class="fas fa-tools"></i></div>
-            <div>
-                <h1 class="text-2xl font-black italic uppercase">Módulo de <span class="orange-accent">Retificação</span></h1>
-                <p class="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Guia Prático de Preenchimento PGDAS-D</p>
+<body>
+    <div class="max-w-4xl mx-auto bg-zinc-900/40 border border-zinc-800 p-8 rounded-2xl">
+        <h1 class="text-2xl font-black italic uppercase text-orange-500 mb-6">Guia de Retificação PGDAS-D</h1>
+        <div id="no-data" class="text-zinc-600 text-sm italic">Nenhuma auditoria realizada recentemente.</div>
+        <div id="data-view" class="hidden">
+            <div class="grid grid-cols-2 gap-8 mb-10">
+                <div class="bg-black p-6 rounded-xl border border-zinc-800">
+                    <p class="text-[10px] text-zinc-500 uppercase font-bold mb-1">Campo: Vendas Monofásicas</p>
+                    <h2 id="val-pis" class="text-2xl font-black text-green-500">R$ 0,00</h2>
+                </div>
+                <div class="bg-black p-6 rounded-xl border border-zinc-800">
+                    <p class="text-[10px] text-zinc-500 uppercase font-bold mb-1">Campo: Vendas com ICMS ST</p>
+                    <h2 id="val-icms" class="text-2xl font-black text-blue-500">R$ 0,00</h2>
+                </div>
             </div>
+            <p class="text-xs text-zinc-400">Instrução: No portal do Simples Nacional, acesse a segregação de receitas e utilize os valores acima para abater os impostos pagos indevidamente.</p>
         </div>
-        <a href="auditor.html" class="px-4 py-2 border border-zinc-800 rounded-lg text-xs font-bold hover:bg-zinc-900 transition">VOLTAR</a>
-    </header>
-
-    <main class="max-w-6xl mx-auto space-y-6">
-        
-        <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="card border-l-4 border-green-500">
-                <p class="text-[10px] text-zinc-500 uppercase font-bold">Total Recuperável (PIS/COFINS)</p>
-                <h2 class="text-3xl font-black highlight-green">R$ 12.450,80</h2>
-            </div>
-            <div class="card border-l-4 border-blue-500">
-                <p class="text-[10px] text-zinc-500 uppercase font-bold">Total Recuperável (ICMS ST)</p>
-                <h2 class="text-3xl font-black text-blue-500">R$ 4.120,35</h2>
-            </div>
-            <div class="card border-l-4 border-orange-500">
-                <p class="text-[10px] text-zinc-500 uppercase font-bold">Crédito Total Estimado</p>
-                <h2 class="text-3xl font-black orange-accent">R$ 16.571,15</h2>
-            </div>
-        </section>
-
-        <section class="card">
-            <h3 class="text-sm font-black uppercase mb-6 flex items-center gap-2">
-                <i class="fas fa-list-check orange-accent"></i> O que fazer no Portal do Simples Nacional
-            </h3>
-
-            <div class="space-y-8">
-                <div class="flex gap-4">
-                    <div class="step-number">1</div>
-                    <div class="flex-1">
-                        <h4 class="text-xs font-black uppercase text-zinc-300">Acessar Atividade</h4>
-                        <p class="text-xs text-zinc-500 mt-1">Selecione "Revenda de mercadorias, exceto para o exterior" e clique em "Segregação de Receitas".</p>
-                    </div>
-                </div>
-
-                <div class="flex gap-4">
-                    <div class="step-number">2</div>
-                    <div class="flex-1">
-                        <h4 class="text-xs font-black uppercase text-zinc-300">Informar Receitas Monofásicas (PIS/COFINS)</h4>
-                        <p class="text-xs text-zinc-500 mb-4">No campo de PIS/COFINS, selecione a opção <b>"Tributação Monofásica"</b> e informe os valores auditados:</p>
-                        
-                        <div class="bg-zinc-950 rounded-lg overflow-hidden border border-zinc-900">
-                            <table class="table-rect">
-                                <thead class="bg-black">
-                                    <tr>
-                                        <th>Mês/Ano</th>
-                                        <th>Receita Bruta (Auditada)</th>
-                                        <th>Segregar (Monofásico)</th>
-                                        <th>Ação</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>Janeiro/2025</td>
-                                        <td>R$ 45.000,00</td>
-                                        <td class="highlight-green">R$ 12.400,00</td>
-                                        <td><button class="btn-copy">COPIAR</button></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Fevereiro/2025</td>
-                                        <td>R$ 48.200,00</td>
-                                        <td class="highlight-green">R$ 15.100,00</td>
-                                        <td><button class="btn-copy">COPIAR</button></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex gap-4">
-                    <div class="step-number">3</div>
-                    <div class="flex-1">
-                        <h4 class="text-xs font-black uppercase text-zinc-300">Informar Receitas com Substituição Tributária (ICMS)</h4>
-                        <p class="text-xs text-zinc-500 mb-4">No campo de ICMS, selecione <b>"Substituição Tributária"</b> para os produtos identificados nos Anexos de SP:</p>
-                        
-                        <div class="bg-zinc-950 rounded-lg overflow-hidden border border-zinc-900">
-                            <table class="table-rect">
-                                <thead class="bg-black">
-                                    <tr>
-                                        <th>Mês/Ano</th>
-                                        <th>Receita Bruta (Auditada)</th>
-                                        <th>Segregar (ICMS ST)</th>
-                                        <th>Ação</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>Janeiro/2025</td>
-                                        <td>R$ 45.000,00</td>
-                                        <td class="text-blue-500 font-bold">R$ 8.500,00</td>
-                                        <td><button class="btn-copy">COPIAR</button></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="p-4 bg-orange-500/10 border border-orange-500/30 rounded-xl flex gap-4 items-center">
-            <i class="fas fa-circle-exclamation text-orange-500 text-xl"></i>
-            <div>
-                <h5 class="text-[10px] font-black uppercase orange-accent">Atenção ao Prazo de Retificação</h5>
-                <p class="text-[10px] text-zinc-400">As retificações devem ser feitas mês a mês. O sistema do PGDAS-D recalculará o imposto automaticamente, gerando o crédito para compensação ou pedido de restituição via PER/DCOMP Web.</p>
-            </div>
-        </section>
-
-    </main>
-
+    </div>
+    <script>
+        window.onload = () => {
+            const data = JSON.parse(localStorage.getItem('audit_data'));
+            if(data && data.valor > 0) {
+                document.getElementById('no-data').classList.add('hidden');
+                document.getElementById('data-view').classList.remove('hidden');
+                document.getElementById('val-pis').innerText = (data.valor * 0.7).toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+                document.getElementById('val-icms').innerText = (data.valor * 0.3).toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+            }
+        };
+    </script>
 </body>
 </html>

@@ -3,30 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FISCAL AUDIT - V7.2 Integrated System</title>
+    <title>FISCAL AUDIT - V7.2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
         :root { --orange-main: #f97316; --bg-dark: #000000; --card-bg: #0a0a0a; --border-color: #1a1a1a; }
         body { background-color: var(--bg-dark); color: #fff; font-family: 'Inter', sans-serif; display: flex; height: 100vh; overflow: hidden; }
-        
         .sidebar { width: 300px; background: var(--bg-dark); border-right: 1px solid var(--border-color); flex-shrink: 0; display: flex; flex-direction: column; overflow-y: auto; }
         .nav-link { padding: 12px 25px; font-size: 11px; font-weight: 700; color: #ffffff; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: 0.2s; text-transform: uppercase; border-left: 3px solid transparent; }
         .nav-link:hover, .nav-link.active { color: var(--orange-main); background: #080808; border-left-color: var(--orange-main); }
         .section-title { padding: 25px 25px 10px; font-size: 9px; font-weight: 900; color: #444; text-transform: uppercase; letter-spacing: 2px; }
-        
-        .expand-content { display: none; background: #050505; padding: 5px 0; }
-        .sub-link { padding: 8px 50px; color: #ffffff; font-size: 10px; cursor: pointer; display: block; text-transform: uppercase; font-weight: bold; border-left: 3px solid transparent; }
-        .sub-link:hover { color: var(--orange-main); background: #0a0a0a; border-left-color: var(--orange-main); }
-
         .main-container { flex: 1; position: relative; background: #050505; }
         .tab-content { display: none; width: 100%; height: 100%; overflow-y: auto; padding: 30px; }
         .tab-content.active { display: block; }
-        
         iframe { width: 100%; height: 100%; border: none; display: none; }
         iframe.active { display: block; }
-
         .dashboard-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 15px; }
         .orange-border { border: 1.5px solid var(--orange-main); }
         input { background: #080808 !important; border: 1px solid var(--border-color) !important; color: #fff !important; padding: 10px; border-radius: 5px; font-size: 12px; width: 100%; outline: none; }
@@ -40,109 +32,55 @@
     <aside class="sidebar">
         <div class="p-8 border-b border-zinc-900 mb-2">
             <h1 class="text-2xl font-black italic tracking-tighter text-white">FISCAL<span class="text-[#f97316]">AUDIT</span></h1>
-            <p class="text-[8px] text-zinc-600 font-bold uppercase tracking-[0.3em]">V7.2 Integrated System</p>
         </div>
         <nav>
-            <div class="section-title">Modulo de Extração de Dados</div>
+            <div class="section-title">Extração de Dados</div>
             <div class="nav-link active" onclick="showTab('auditoria-panel', this)"><i class="fas fa-file-code"></i> Extrator XML</div>
-            <div class="nav-link" onclick="showTab('extrato-frame', this, 'extrato simples.html')"><i class="fas fa-file-invoice"></i> Extrator PGDAS</div>
-            
-            <div class="section-title">Ações</div>
-            <div class="nav-link" style="color: #f97316;" onclick="window.efetuarAuditoria()"><i class="fas fa-bolt"></i> Auditar</div>
-            <div class="nav-link" onclick="window.gravarAuditoria()"><i class="fas fa-save"></i> Gravar Auditoria</div>
-            
-            <div class="section-title">Historico e Consultas</div>
-            <div class="nav-link" onclick="showTab('historico-frame', this, 'histórico.html')"><i class="fas fa-database"></i> Historico Global</div>
+            <div class="section-title">Consultas</div>
             <div class="nav-link" onclick="showTab('xml-history-frame', this, 'historico_xml.html')"><i class="fas fa-file-csv"></i> Histórico de Extração XML</div>
-            <div class="nav-link" onclick="showTab('retificacoes-frame', this, 'Retificacoes.html')"><i class="fas fa-edit"></i> Painel de Retificações</div>
-
-            <div class="section-title">Legislação</div>
-            <div class="nav-link flex justify-between" onclick="toggleMenu('menu-est')">
-                <span><i class="fas fa-landmark"></i> Estadual</span>
-                <i class="fas fa-chevron-down text-[8px]"></i>
-            </div>
-            <div id="menu-est" class="expand-content">
-                <span class="sub-link" onclick="showTab('leg-sp-frame', this, 'baselegal.html')">Base Legal SP</span>
-                <span class="sub-link" onclick="showTab('anexos-sp-frame', this, 'auto pecas.html')">Anexos ICMS-ST</span>
-            </div>
-
-            <div class="nav-link flex justify-between" onclick="toggleMenu('menu-fed')">
-                <span><i class="fas fa-gavel"></i> Federal</span>
-                <i class="fas fa-chevron-down text-[8px]"></i>
-            </div>
-            <div id="menu-fed" class="expand-content">
-                <span class="sub-link" onclick="showTab('pis-cof-frame', this, 'pis e cofins.html')">PIS/COFINS Monofásico</span>
-                <span class="sub-link" onclick="showTab('simples-frame', this, 'base reduzida.html')">Simples Nacional</span>
-            </div>
         </nav>
     </aside>
 
     <main class="main-container">
         <div id="auditoria-panel" class="tab-content active">
-            <header class="flex justify-between items-center mb-10">
-                <div class="flex items-center gap-4">
-                    <div class="bg-orange-600 p-3 rounded-xl text-black"><i class="fas fa-database text-2xl"></i></div>
-                    <div>
-                        <h2 class="text-2xl font-black italic text-white">Extrator <span class="text-[#f97316]">XML</span> Massivo</h2>
-                        <p id="header-empresa" class="text-[9px] text-zinc-500 font-bold uppercase tracking-[0.3em]">Aguardando Importação</p>
-                    </div>
-                </div>
-            </header>
-
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
                 <div class="dashboard-card p-6 orange-border">
-                    <h4 class="text-[10px] font-black uppercase text-[#f97316] mb-6 flex items-center gap-2"><i class="fas fa-id-card"></i> Identificação</h4>
+                    <h4 class="text-[10px] font-black uppercase text-[#f97316] mb-6">Identificação</h4>
                     <div class="space-y-4">
                         <div><label class="text-[9px] text-zinc-600 font-bold uppercase">Empresa</label><input type="text" id="disp-empresa" readonly></div>
                         <div><label class="text-[9px] text-zinc-600 font-bold uppercase">CNPJ</label><input type="text" id="disp-cnpj" readonly></div>
-                        <div><label class="text-[9px] text-zinc-600 font-bold uppercase">Mês</label><input type="text" id="disp-periodo" readonly></div>
+                        <div><label class="text-[9px] text-zinc-600 font-bold uppercase">Período</label><input type="text" id="disp-periodo" readonly></div>
                     </div>
                 </div>
 
                 <div class="dashboard-card p-6 orange-border">
-                    <h4 class="text-[10px] font-black uppercase text-[#f97316] mb-4 flex items-center gap-2"><i class="fas fa-cloud-upload-alt"></i> Upload XML</h4>
-                    <div class="border-2 border-dashed border-zinc-900 rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer hover:bg-zinc-900/30" onclick="document.getElementById('xml-input-file').click()">
-                        <i class="fas fa-file-code text-3xl text-zinc-800 mb-2"></i>
-                        <p id="upload-label" class="text-[10px] text-zinc-600 font-bold">CARREGAR ARQUIVOS</p>
+                    <h4 class="text-[10px] font-black uppercase text-[#f97316] mb-4">Ação</h4>
+                    <div class="border-2 border-dashed border-zinc-900 rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer mb-4" onclick="document.getElementById('xml-input-file').click()">
+                        <p id="upload-label" class="text-[10px] font-bold">CARREGAR XMLs</p>
                         <input type="file" id="xml-input-file" multiple accept=".xml" class="hidden" onchange="window.handleFiles(this.files)">
                     </div>
-                    <button id="btn-extract-main" onclick="window.extrairDadosXML()" class="btn-action btn-gray mt-4" disabled>EXTRAIR DADOS XML</button>
+                    <button id="btn-extract-main" onclick="window.extrairDadosXML()" class="btn-action btn-gray" disabled>EXTRAIR DADOS XML</button>
                 </div>
 
-                <div class="dashboard-card p-6 orange-border">
-                    <h4 class="text-[10px] font-black uppercase text-[#f97316] mb-6 flex items-center gap-2"><i class="fas fa-file-excel"></i> Exportação</h4>
-                    <button id="btn-export-main" class="btn-action btn-gray mb-3" onclick="window.exportarExcelTudo()" disabled>Exportar Planilha Completa</button>
-                    <button onclick="location.reload()" class="btn-action border border-zinc-800 text-zinc-500">Reiniciar</button>
+                <div class="dashboard-card p-6 orange-border text-center">
+                    <h4 class="text-[10px] font-black uppercase text-[#f97316] mb-8">Download</h4>
+                    <button id="btn-export-main" class="btn-action btn-gray" onclick="window.exportarExcelTudo()" disabled>Exportar Planilha Completa</button>
                 </div>
             </div>
-
             <div class="grid grid-cols-2 gap-6">
-                <div class="dashboard-card p-5 border-l-4 border-orange-500"><p class="text-[9px] text-zinc-500 uppercase font-bold">Notas Selecionadas</p><h3 id="kpi-notas" class="text-3xl font-black mt-1">0</h3></div>
-                <div class="dashboard-card p-5 border-l-4 border-orange-500"><p class="text-[9px] text-zinc-500 uppercase font-bold">Total de Itens</p><h3 id="kpi-itens" class="text-3xl font-black mt-1">0</h3></div>
+                <div class="dashboard-card p-5 border-l-4 border-orange-500"><p class="text-[9px] text-zinc-500 uppercase font-bold">Notas Lidas</p><h3 id="kpi-notas" class="text-3xl font-black mt-1">0</h3></div>
+                <div class="dashboard-card p-5 border-l-4 border-orange-500"><p class="text-[9px] text-zinc-500 uppercase font-bold">Itens Totais</p><h3 id="kpi-itens" class="text-3xl font-black mt-1">0</h3></div>
             </div>
         </div>
-
-        <iframe id="extrato-frame"></iframe>
-        <iframe id="historico-frame"></iframe>
         <iframe id="xml-history-frame"></iframe>
-        <iframe id="retificacoes-frame"></iframe>
-        <iframe id="leg-sp-frame"></iframe>
-        <iframe id="anexos-sp-frame"></iframe>
-        <iframe id="pis-cof-frame"></iframe>
-        <iframe id="simples-frame"></iframe>
     </main>
 
     <script>
         const MONTHS = ["JANEIRO", "FEVEREIRO", "MARÇO", "ABRIL", "MAIO", "JUNHO", "JULHO", "AGOSTO", "SETEMBRO", "OUTUBRO", "NOVEMBRO", "DEZEMBRO"];
-
-        function toggleMenu(id) {
-            const m = document.getElementById(id);
-            m.style.display = m.style.display === 'block' ? 'none' : 'block';
-        }
-
+        
         function showTab(tabId, element, url = null) {
             document.querySelectorAll('.tab-content, iframe').forEach(el => { el.style.display = 'none'; el.classList.remove('active'); });
-            document.querySelectorAll('.nav-link, .sub-link').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
             const target = document.getElementById(tabId);
             target.style.display = 'block'; target.classList.add('active');
             if (url && target.tagName === 'IFRAME') target.src = url;
@@ -176,7 +114,6 @@
             document.getElementById('disp-cnpj').value = cnpjF;
             document.getElementById('disp-empresa').value = nome;
             document.getElementById('disp-periodo').value = mesAno;
-            document.getElementById('header-empresa').innerText = nome;
             window.processSummary.empresa = nome;
             window.processSummary.cnpj = cnpjF;
             window.processSummary.periodo = mesAno;
@@ -202,7 +139,7 @@
                     masterData.push({
                         Empresa: window.processSummary.empresa, CNPJ: window.processSummary.cnpj, Mes: window.processSummary.periodo, 
                         Nota: nNF, Produto: xProd, NCM: ncm, CFOP: cfop, Unidade: uCom, Qtd: qCom, Unitario: vUnCom, 
-                        Total_Item: vProd.toFixed(2), CST_PIS: "49", CST_COFINS: "49", CST_ICMS: "102", // Exemplo
+                        Total_Item: vProd.toFixed(2), CST_PIS: "49", CST_COFINS: "49", CST_ICMS: "102", 
                         Credito_Calculado: (vProd * 0.0198).toFixed(2)
                     });
                 });
@@ -210,10 +147,11 @@
             document.getElementById('kpi-itens').innerText = masterData.length;
             document.getElementById('btn-export-main').disabled = false;
             document.getElementById('btn-export-main').className = "btn-action btn-orange";
+            alert("✅ Extração concluída!");
         };
 
         window.exportarExcelTudo = function() {
-            // GRAVA NO HISTÓRICO
+            // AQUI É ONDE GRAVA NO HISTÓRICO
             let xmlHistory = JSON.parse(localStorage.getItem('xml_export_history')) || [];
             xmlHistory.push({
                 dataExportacao: new Date().toLocaleString(),
@@ -225,18 +163,17 @@
             });
             localStorage.setItem('xml_export_history', JSON.stringify(xmlHistory));
 
-            // GERA CSV
+            // GERA O CSV
             let csv = "\ufeffEmpresa;CNPJ;Mes;Nota;Produto;NCM;CFOP;Unidade;Qtd;Unitario;Total_Item;CST_PIS;CST_COFINS;CST_ICMS;Credito_Calculado\n";
             masterData.forEach(d => { csv += `${d.Empresa};${d.CNPJ};${d.Mes};${d.Nota};${d.Produto};${d.NCM};${d.CFOP};${d.Unidade};${d.Qtd};${d.Unitario};${d.Total_Item};${d.CST_PIS};${d.CST_COFINS};${d.CST_ICMS};${d.Credito_Calculado}\n`; });
+            
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.download = `EXTRAÇÃO_${window.processSummary.empresa}.csv`;
+            link.download = `EXTRACAO_${window.processSummary.empresa}.csv`;
             link.click();
+            alert("✅ Planilha salva no Histórico!");
         };
-
-        window.efetuarAuditoria = function() { alert("🔍 Cruzando dados..."); };
-        window.gravarAuditoria = function() { alert("💾 Auditoria gravada!"); };
     </script>
 </body>
 </html>

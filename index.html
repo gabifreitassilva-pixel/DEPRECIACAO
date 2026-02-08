@@ -39,11 +39,11 @@
             
             <div class="section-title">Ações</div>
             <div class="nav-link" style="color: #f97316;" onclick="window.efetuarAuditoria()"><i class="fas fa-bolt"></i> Efetuar Auditoria</div>
+            <div class="nav-link" onclick="showTab('retificacoes-frame', this, 'Retificacoes.html')"><i class="fas fa-edit"></i> Painel de Retificações</div>
             <div class="nav-link" onclick="window.gravarProcessamento()"><i class="fas fa-save"></i> Gravar Auditoria</div>
             
             <div class="section-title">Histórico e Consultas</div>
             <div class="nav-link" onclick="showTab('historico-frame', this, 'histórico.html')"><i class="fas fa-database"></i> Histórico Global</div>
-            <div class="nav-link" onclick="showTab('retificacoes-frame', this, 'Retificacoes.html')"><i class="fas fa-edit"></i> Painel de Retificações</div>
         </nav>
     </aside>
 
@@ -52,7 +52,7 @@
             <header class="flex justify-between items-center mb-10">
                 <div class="flex items-center gap-4">
                     <div class="bg-orange-600 p-3 rounded-xl text-black"><i class="fas fa-file-invoice-dollar text-2xl"></i></div>
-                    <div><h2 class="text-2xl font-black italic text-white">Auditor <span class="text-[#f97316]">Fiscal</span> Total</h2><p id="header-empresa" class="text-[9px] text-zinc-500 font-bold uppercase tracking-[0.3em]">Aguardando Importação</p></div>
+                    <div><h2 class="text-2xl font-black italic text-white">Auditor <span class="text-[#f97316]">Fiscal</span> Total</h2><p id="header-empresa" class="text-[9px] text-zinc-500 font-bold uppercase tracking-[0.3em]">Pronto para Extração Total</p></div>
                 </div>
             </header>
 
@@ -67,7 +67,7 @@
                 </div>
 
                 <div class="dashboard-card p-6 orange-border flex flex-col">
-                    <h4 class="text-[10px] font-black uppercase text-[#f97316] mb-4 flex items-center gap-2"><i class="fas fa-folder-open"></i> Importar Notas (XML)</h4>
+                    <h4 class="text-[10px] font-black uppercase text-[#f97316] mb-4 flex items-center gap-2"><i class="fas fa-folder-open"></i> Importar XMLs</h4>
                     <div class="flex-1 border-2 border-dashed border-zinc-900 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:bg-zinc-900/30 mb-4" onclick="document.getElementById('xml-input-file').click()">
                         <i class="fas fa-cloud-arrow-up text-3xl text-zinc-800 mb-4"></i>
                         <p id="upload-label" class="text-[10px] text-zinc-600 font-bold uppercase text-center px-4">Selecione Arquivos XML</p>
@@ -86,8 +86,8 @@
             </div>
 
             <div class="grid grid-cols-3 gap-6">
-                <div class="dashboard-card p-5 border-l-4 border-orange-500"><p class="text-[9px] text-zinc-500 uppercase font-bold tracking-widest">Quantidade de Notas</p><h3 id="kpi-notas" class="text-3xl font-black mt-1">0</h3></div>
-                <div class="dashboard-card p-5 border-l-4 border-orange-500"><p class="text-[9px] text-zinc-500 uppercase font-bold tracking-widest">Quantidade de Itens</p><h3 id="kpi-itens" class="text-3xl font-black mt-1">0</h3></div>
+                <div class="dashboard-card p-5 border-l-4 border-orange-500"><p class="text-[9px] text-zinc-500 uppercase font-bold tracking-widest">Notas Lidas</p><h3 id="kpi-notas" class="text-3xl font-black mt-1">0</h3></div>
+                <div class="dashboard-card p-5 border-l-4 border-orange-500"><p class="text-[9px] text-zinc-500 uppercase font-bold tracking-widest">Total Itens Extraídos</p><h3 id="kpi-itens" class="text-3xl font-black mt-1">0</h3></div>
                 <div class="dashboard-card p-5 border-l-4 border-red-600"><p class="text-[9px] text-zinc-500 uppercase font-bold text-red-600">Inconsistências (%)</p><h3 id="kpi-erros" class="text-3xl font-black text-red-600 mt-1">0%</h3></div>
             </div>
         </div>
@@ -156,8 +156,16 @@
                     totalItens++;
                     const xProd = det.getElementsByTagName("xProd")[0]?.textContent || "";
                     const ncm = det.getElementsByTagName("NCM")[0]?.textContent || "";
+                    const cfop = det.getElementsByTagName("CFOP")[0]?.textContent || "";
+                    const uCom = det.getElementsByTagName("uCom")[0]?.textContent || "";
+                    const qCom = det.getElementsByTagName("qCom")[0]?.textContent || "0";
+                    const vUnCom = det.getElementsByTagName("vUnCom")[0]?.textContent || "0";
                     const vProd = parseFloat(det.getElementsByTagName("vProd")[0]?.textContent || 0);
-                    const pisCST = det.getElementsByTagName("PIS")[0]?.getElementsByTagName("CST")[0]?.textContent || "01";
+
+                    const pisCST = det.getElementsByTagName("PIS")[0]?.getElementsByTagName("CST")[0]?.textContent || "";
+                    const cofinsCST = det.getElementsByTagName("COFINS")[0]?.getElementsByTagName("CST")[0]?.textContent || "";
+                    const icmsTag = det.getElementsByTagName("ICMS")[0];
+                    const icmsCST = icmsTag ? (icmsTag.getElementsByTagName("CST")[0]?.textContent || icmsTag.getElementsByTagName("CSOSN")[0]?.textContent || "") : "";
 
                     if (ncm === "00000000" || ncm.length < 8) totalErros++;
 
@@ -166,14 +174,11 @@
                         vCred = vProd * 0.0198;
                     }
 
+                    // Modelo Total: Empresa;CNPJ;Mes;Nota;Produto;NCM;Credito;CFOP;Unidade;Qtd;Unitario;CST_PIS;CST_COFINS;CST_ICMS
                     exportDataMaster.push({ 
-                        Empresa: window.processSummary.empresa, 
-                        CNPJ: window.processSummary.cnpj,
-                        Mes: mesRef,
-                        Nota: nNF, 
-                        Produto: xProd, 
-                        NCM: ncm, 
-                        Credito: vCred.toFixed(2)
+                        Empresa: window.processSummary.empresa, CNPJ: window.processSummary.cnpj, Mes: mesRef, Nota: nNF, 
+                        Produto: xProd, NCM: ncm, Credito: vCred.toFixed(2), CFOP: cfop, Unidade: uCom, Qtd: qCom, 
+                        Unitario: vUnCom, PIS: pisCST, COFINS: cofinsCST, ICMS: icmsCST 
                     });
                 });
             }
@@ -185,20 +190,7 @@
             document.getElementById('btn-export-main').disabled = false;
             document.getElementById('btn-export-main').className = "btn-action btn-orange";
             
-            alert(`✅ EXTRAÇÃO FINALIZADA!\n\nForam extraídas todas as informações de ${xmlList.length} arquivos.\nTotal de ${totalItens} itens processados.`);
-        };
-
-        window.exportarExcelTudo = function() {
-            if(exportDataMaster.length === 0) return;
-            let csv = "\ufeffEmpresa;CNPJ;Mes;Nota;Produto;NCM;Credito\n";
-            exportDataMaster.forEach(d => { 
-                csv += `${d.Empresa};${d.CNPJ};${d.Mes};${d.Nota};${d.Produto};${d.NCM};${d.Credito}\n`; 
-            });
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.download = `RELATORIO_ITENS_${window.processSummary.empresa}.csv`;
-            link.click();
+            alert(`✅ EXTRAÇÃO FINALIZADA COM SUCESSO!\n\nProcessamos ${xmlList.length} notas.\nTotal de ${totalItens} itens capturados com todas as tags fiscais.`);
         };
 
         window.efetuarAuditoria = function() {
@@ -206,12 +198,25 @@
             alert("🔍 Iniciando Auditoria Cruzada...\nProcesso finalizado com sucesso!");
         };
 
+        window.exportarExcelTudo = function() {
+            if(exportDataMaster.length === 0) return;
+            let csv = "\ufeffEmpresa;CNPJ;Mes;Nota;Produto;NCM;Credito;CFOP;Unidade;Qtd;Unitario;CST_PIS;CST_COFINS;CST_ICMS\n";
+            exportDataMaster.forEach(d => { 
+                csv += `${d.Empresa};${d.CNPJ};${d.Mes};${d.Nota};${d.Produto};${d.NCM};${d.Credito};${d.CFOP};${d.Unidade};${d.Qtd};${d.Unitario};${d.PIS};${d.COFINS};${d.ICMS}\n`; 
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `RELATORIO_TOTAL_${window.processSummary.empresa}.csv`;
+            link.click();
+        };
+
         window.gravarProcessamento = function() {
             if(window.processSummary.itens === 0) return alert("Extraia os dados primeiro!");
             let hist = JSON.parse(localStorage.getItem('auditoria_salva')) || [];
             hist.push({ ...window.processSummary, data: new Date().toISOString() });
             localStorage.setItem('auditoria_salva', JSON.stringify(hist));
-            alert("✅ Registro gravado no Histórico!");
+            alert("✅ Gravado com sucesso no Histórico Global!");
         };
     </script>
 </body>

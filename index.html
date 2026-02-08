@@ -20,19 +20,16 @@
         .orange-border { border: 1.5px solid var(--orange-main); }
         input { background: #080808 !important; border: 1px solid var(--border-color) !important; color: #fff !important; padding: 10px; border-radius: 5px; font-size: 12px; width: 100%; outline: none; }
         .btn-action { width: 100%; padding: 12px; border-radius: 8px; font-size: 11px; font-weight: 900; text-transform: uppercase; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .btn-gray { background: #1a1a1a; color: #444; cursor: not-allowed; }
         .btn-orange { background: var(--orange-main); color: #000; cursor: pointer; }
-        .btn-orange:hover:not(:disabled) { background: #fb923c; transform: translateY(-1px); box-shadow: 0 5px 15px rgba(249,115,22,0.3); }
-        .badge-tax { font-size: 8px; padding: 2px 5px; border-radius: 3px; font-weight: bold; margin-right: 2px; text-transform: uppercase; line-height: 1.6; }
+        .btn-orange:hover { background: #fb923c; transform: translateY(-1px); }
+        .badge-tax { font-size: 8px; padding: 2px 5px; border-radius: 3px; font-weight: bold; margin-right: 2px; text-transform: uppercase; }
         .bg-pis-cof { background-color: #3b82f6; color: white; }
         .bg-icms { background-color: #f59e0b; color: white; }
-        .bg-ncm-sug { background-color: #10b981; color: white; }
         table { width: 100%; border-collapse: collapse; font-size: 11px; }
         th { text-align: left; color: #444; border-bottom: 1px solid #111; padding: 15px 10px; text-transform: uppercase; }
-        td { padding: 12px 10px; border-bottom: 1px solid #0d0d0d; vertical-align: middle; }
+        td { padding: 12px 10px; border-bottom: 1px solid #0d0d0d; }
         .expand-content { display: none; background: #050505; padding: 5px 0; }
         .sub-link { padding: 8px 50px; color: #ffffff; font-size: 10px; cursor: pointer; display: block; text-transform: uppercase; font-weight: bold; }
-        .sub-link:hover { color: var(--orange-main); }
     </style>
 </head>
 <body>
@@ -43,20 +40,23 @@
             <p class="text-[8px] text-zinc-600 font-bold uppercase tracking-[0.3em]">V7.2 Integrated System</p>
         </div>
         <nav>
-            <div class="section-title">Ferramentas de Auditoria</div>
-            <div class="nav-link active" onclick="loadModule('auditoria', this)"><i class="fas fa-bolt"></i> Nova Auditoria XML</div>
-            <div class="nav-link" onclick="loadModule('extrato simples.html', this)"><i class="fas fa-file-invoice"></i> Extrator PGDAS-D</div>
+            <div class="section-title">Entrada de Dados</div>
+            <div class="nav-link active" onclick="loadModule('auditoria', this)"><i class="fas fa-file-code"></i> 1. Importar XMLs</div>
+            <div class="nav-link" onclick="loadModule('extrato simples.html', this)"><i class="fas fa-file-invoice"></i> 2. Extrato PGDAS-D</div>
             
-            <div class="section-title">Ações do Sistema</div>
+            <div class="section-title">Processamento</div>
+            <div class="nav-link" style="color: #f97316;" onclick="window.processarAuditoriaCompleta()"><i class="fas fa-bolt"></i> EFETUAR AUDITORIA</div>
+            
+            <div class="section-title">Ações e Histórico</div>
             <div class="nav-link" onclick="window.gravarAuditoria()"><i class="fas fa-save"></i> Gravar Auditoria</div>
             <div class="nav-link" onclick="loadModule('histórico.html', this)"><i class="fas fa-database"></i> Histórico Global</div>
+            <div class="nav-link" onclick="loadModule('retificacoes.html', this)"><i class="fas fa-edit"></i> Retificações</div>
             
             <div class="section-title">Base Legal Estadual (SP)</div>
             <div class="nav-link flex justify-between" onclick="toggleMenu('menu-sp')"><span><i class="fas fa-box text-[#f97316]"></i> Anexos ICMS-ST</span><i class="fas fa-chevron-down ml-auto text-[8px]"></i></div>
             <div id="menu-sp" class="expand-content">
                 <span class="sub-link" onclick="loadModule('auto pecas.html', this)">Autopeças</span>
                 <span class="sub-link" onclick="loadModule('bebidas alcolicas exceto cerveja e chope.html', this)">Bebidas</span>
-                <span class="sub-link" onclick="loadModule('perfumaria e higiene pessoal.html', this)">Perfumaria</span>
             </div>
         </nav>
     </aside>
@@ -65,9 +65,13 @@
 
     <script>
         const MONTHS = ["JANEIRO", "FEVEREIRO", "MARÇO", "ABRIL", "MAIO", "JUNHO", "JULHO", "AGOSTO", "SETEMBRO", "OUTUBRO", "NOVEMBRO", "DEZEMBRO"];
-        let xmlList = [];
-        let auditResults = { empresa: '', cnpj: '', periodo: '', valor: 0, itens: 0 };
-        let exportData = []; // Variável para armazenar dados do Excel
+        
+        // Memória Global para não perder dados entre abas
+        let state = {
+            xmlData: [],
+            pgdasData: null,
+            results: { empresa: '', cnpj: '', periodo: '', valor: 0, itens: 0 }
+        };
 
         function loadModule(target, element) {
             const container = document.getElementById('dynamic-content');
@@ -75,8 +79,12 @@
                 document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
                 element.classList.add('active');
             }
-            if (target === 'auditoria') { renderAuditor(container); } 
-            else { container.innerHTML = `<iframe src="${target}" style="width:100%; height:100vh; border:none;"></iframe>`; }
+            if (target === 'auditoria') { 
+                renderAuditor(container);
+                restoreState(); // Recupera o que já foi importado
+            } else { 
+                container.innerHTML = `<iframe src="${target}" id="module-frame" style="width:100%; height:100vh; border:none;"></iframe>`; 
+            }
         }
 
         function renderAuditor(container) {
@@ -84,177 +92,127 @@
                 <div class="module-padding">
                     <header class="flex justify-between items-center mb-10">
                         <div class="flex items-center gap-4">
-                            <div class="bg-orange-600 p-3 rounded-xl text-black"><i class="fas fa-file-invoice-dollar text-2xl"></i></div>
-                            <div><h2 class="text-2xl font-black italic text-white">Auditor <span class="text-[#f97316]">Fiscal</span> Total</h2><p class="text-[9px] text-zinc-500 font-bold uppercase tracking-[0.3em]">IA de NCM e Auditoria Reversa Excel</p></div>
+                            <div class="bg-orange-600 p-3 rounded-xl text-black"><i class="fas fa-microchip text-2xl"></i></div>
+                            <div><h2 class="text-2xl font-black italic text-white">Painel de <span class="text-[#f97316]">Cruzamento</span></h2><p class="text-[9px] text-zinc-500 font-bold uppercase tracking-[0.3em]">XML + PGDAS DATA MATCH</p></div>
                         </div>
-                        <div class="text-right"><span id="header-empresa" class="block font-black text-[#f97316] text-xl italic uppercase">Aguardando Dados</span><p id="header-regime-mes" class="text-[9px] font-bold text-zinc-600 uppercase tracking-widest text-right">Regime: -- | Mês: --</p></div>
+                        <div class="text-right"><span id="header-empresa" class="block font-black text-[#f97316] text-xl italic uppercase">Aguardando Importação</span></div>
                     </header>
 
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                        <div class="dashboard-card p-6 orange-border"><h4 class="text-[10px] font-black uppercase text-[#f97316] mb-6 flex items-center gap-2"><i class="fas fa-id-card"></i> Dados Identificados</h4><div class="space-y-4"><div><label class="text-[9px] text-zinc-600 font-bold uppercase ml-1">Empresa</label><input type="text" id="disp-empresa" readonly></div><div><label class="text-[9px] text-zinc-600 font-bold uppercase ml-1">Regime Tributário</label><input type="text" id="disp-regime" readonly></div><div><label class="text-[9px] text-zinc-600 font-bold uppercase ml-1">CNPJ</label><input type="text" id="disp-cnpj" readonly></div><div><label class="text-[9px] text-zinc-600 font-bold uppercase ml-1">Períodos</label><input type="text" id="disp-periodo" readonly></div></div></div>
-                        <div class="dashboard-card p-6 orange-border flex flex-col"><h4 class="text-[10px] font-black uppercase text-[#f97316] mb-4 flex items-center gap-2"><i class="fas fa-folder-open"></i> Importar Notas (XML)</h4><div class="flex-1 border-2 border-dashed border-zinc-900 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:bg-zinc-900/30 transition-all mb-4" onclick="document.getElementById('xml-input').click()"><i class="fas fa-cloud-arrow-up text-3xl text-zinc-800 mb-4"></i><p id="upload-label" class="text-[10px] text-zinc-600 font-bold uppercase text-center px-4">Selecione Arquivos SAT/NFe</p><input type="file" id="xml-input" multiple accept=".xml" class="hidden" onchange="window.handleFiles(this.files)"></div><button id="btn-iniciar" onclick="window.processarAuditoria()" class="btn-action btn-gray" disabled><i class="fas fa-bolt"></i> Iniciar Auditoria</button></div>
-                        <div class="dashboard-card p-6 orange-border"><h4 class="text-[10px] font-black uppercase text-[#f97316] mb-6 flex items-center gap-2"><i class="fas fa-cog"></i> Gerenciamento</h4><div class="space-y-3"><button id="btn-exportar" class="btn-action btn-gray" onclick="window.exportarExcel()" disabled><i class="fas fa-file-excel"></i> Exportar Excel</button><button class="btn-action btn-orange"><i class="fas fa-file-import"></i> Importar Auditoria Excel</button><button onclick="window.loadModule('auditoria', document.querySelector('.nav-link.active'))" class="btn-action btn-outline mt-2"><i class="fas fa-broom"></i> Limpar Análise</button></div></div>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                        <div class="dashboard-card p-6 orange-border flex flex-col">
+                            <h4 class="text-[10px] font-black uppercase text-[#f97316] mb-4 flex items-center gap-2"><i class="fas fa-cloud-upload-alt"></i> Upload de XMLs</h4>
+                            <input type="file" id="xml-input" multiple accept=".xml" class="hidden" onchange="window.handleFiles(this.files)">
+                            <div class="flex-1 border-2 border-dashed border-zinc-900 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:bg-zinc-900/30 p-10" onclick="document.getElementById('xml-input').click()">
+                                <p id="upload-label" class="text-[10px] text-zinc-600 font-bold uppercase">Clique para selecionar arquivos</p>
+                            </div>
+                        </div>
+                        <div class="dashboard-card p-6 orange-border">
+                            <h4 class="text-[10px] font-black uppercase text-[#f97316] mb-6 flex items-center gap-2"><i class="fas fa-info-circle"></i> Resumo da Empresa</h4>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div><label class="text-[9px] text-zinc-600 font-bold uppercase">Empresa</label><input type="text" id="disp-empresa" readonly></div>
+                                <div><label class="text-[9px] text-zinc-600 font-bold uppercase">CNPJ</label><input type="text" id="disp-cnpj" readonly></div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="grid grid-cols-4 gap-6 mb-8">
-                        <div class="dashboard-card p-5 border-l-4 border-orange-500"><p class="text-[9px] text-zinc-500 uppercase font-bold tracking-widest">Lote Notas</p><h3 id="kpi-notas" class="text-3xl font-black mt-1">0</h3></div>
-                        <div class="dashboard-card p-5 border-l-4 border-orange-500"><p class="text-[9px] text-zinc-500 uppercase font-bold tracking-widest">Itens Auditados</p><h3 id="kpi-itens" class="text-3xl font-black mt-1">0</h3></div>
-                        <div class="dashboard-card p-5 border-l-4 border-red-600"><p class="text-[9px] text-zinc-500 uppercase font-bold tracking-widest text-red-600">Inconsistências</p><h3 id="kpi-erros" class="text-3xl font-black text-red-600 mt-1">0%</h3></div>
-                        <div class="dashboard-card p-5 border-l-4 border-green-500"><p class="text-[9px] text-zinc-500 uppercase font-bold tracking-widest text-green-600">Total Recuperável</p><h3 id="kpi-valor" class="text-3xl font-black text-green-500 mt-1">R$ 0,00</h3></div>
+                        <div class="dashboard-card p-5 border-l-4 border-orange-500"><p class="text-[9px] text-zinc-500 uppercase font-bold">XMLs Carregados</p><h3 id="kpi-notas" class="text-3xl font-black mt-1">0</h3></div>
+                        <div class="dashboard-card p-5 border-l-4 border-blue-500"><p class="text-[9px] text-zinc-500 uppercase font-bold">Itens Identificados</p><h3 id="kpi-itens" class="text-3xl font-black mt-1">0</h3></div>
+                        <div class="dashboard-card p-5 border-l-4 border-green-500"><p class="text-[9px] text-zinc-500 uppercase font-bold">Crédito Estimado</p><h3 id="kpi-valor" class="text-3xl font-black text-green-500 mt-1">R$ 0,00</h3></div>
+                        <div class="dashboard-card p-5 border-l-4 border-white"><p class="text-[9px] text-zinc-500 uppercase font-bold">Status Auditoria</p><h3 id="kpi-status" class="text-xl font-black mt-1 uppercase">Aguardando</h3></div>
                     </div>
 
                     <div class="dashboard-card overflow-hidden">
-                        <div class="p-4 bg-zinc-900/20 border-b border-zinc-900"><h3 class="text-[10px] font-black uppercase text-zinc-400 tracking-[0.2em]">Relatório: Original vs Sugestão do Auditor</h3></div>
-                        <div class="overflow-x-auto max-h-96">
-                            <table>
-                                <thead class="bg-black sticky top-0 text-zinc-500 uppercase font-bold">
-                                    <tr><th>Documento / Produto</th><th>NCM Original</th><th class="text-center">Tributos Originais</th><th class="text-center text-orange-500">Sugestão Técnica</th><th class="text-center">Status</th><th class="text-right text-green-500">Crédito Est.</th></tr>
-                                </thead>
-                                <tbody id="tabela-body">
-                                    <tr><td colspan="6" class="p-20 text-center opacity-30 uppercase font-black">Aguardando importação de notas...</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
+                        <table id="result-table">
+                            <thead class="bg-black">
+                                <tr><th>Documento / Produto</th><th>NCM</th><th class="text-center">Trib. Original</th><th class="text-center text-orange-500">Sugestão</th><th class="text-right">V. Recuperável</th></tr>
+                            </thead>
+                            <tbody id="tabela-body">
+                                <tr><td colspan="5" class="p-10 text-center opacity-20 uppercase font-black">Nenhuma auditoria processada</td></tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>`;
         }
 
-        window.handleFiles = function(files) {
-            xmlList = Array.from(files);
-            if(xmlList.length > 0) {
-                document.getElementById('upload-label').innerText = xmlList.length + " XMLs Selecionados";
-                const btn = document.getElementById('btn-iniciar');
-                btn.disabled = false; btn.className = "btn-action btn-orange";
-                document.getElementById('kpi-notas').innerText = xmlList.length;
-                window.lerCabecalho(xmlList[0]);
-            }
-        };
-
-        window.lerCabecalho = async function(file) {
-            const text = await file.text();
-            const xml = new DOMParser().parseFromString(text, "text/xml");
-            const cnpjRaw = xml.getElementsByTagName("CNPJ")[0]?.textContent || "";
-            const cnpjFormatado = cnpjRaw.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5");
-            const nome = xml.getElementsByTagName("xNome")[0]?.textContent || "EMPRESA S/A";
-            const crt = xml.getElementsByTagName("CRT")[0]?.textContent || xml.getElementsByTagName("cRegTrib")[0]?.textContent;
-            const regime = (crt === "1" || crt === "2") ? "SIMPLES NACIONAL" : "REGIME NORMAL";
-            const dEmiRaw = xml.getElementsByTagName("dEmi")[0]?.textContent || "";
-            let mesAno = "---";
-            if(dEmiRaw.length >= 8) {
-                const mesIdx = parseInt(dEmiRaw.substring(4, 6)) - 1;
-                mesAno = `${MONTHS[mesIdx]}/${dEmiRaw.substring(0, 4)}`;
-            }
-            document.getElementById('disp-cnpj').value = cnpjFormatado;
-            document.getElementById('disp-empresa').value = nome;
-            document.getElementById('header-empresa').innerText = nome;
-            document.getElementById('disp-regime').value = regime;
-            document.getElementById('disp-periodo').value = mesAno;
-            document.getElementById('header-regime-mes').innerText = `Regime: ${regime} | Mês: ${mesAno}`;
+        window.handleFiles = async function(files) {
+            state.xmlData = Array.from(files);
+            document.getElementById('upload-label').innerText = state.xmlData.length + " XMLs Prontos";
+            document.getElementById('kpi-notas').innerText = state.xmlData.length;
             
-            auditResults.empresa = nome;
-            auditResults.cnpj = cnpjFormatado;
-            auditResults.periodo = mesAno;
+            const text = await state.xmlData[0].text();
+            const xml = new DOMParser().parseFromString(text, "text/xml");
+            state.results.empresa = xml.getElementsByTagName("xNome")[0]?.textContent || "EMPRESA S/A";
+            state.results.cnpj = xml.getElementsByTagName("CNPJ")[0]?.textContent || "";
+            
+            document.getElementById('disp-empresa').value = state.results.empresa;
+            document.getElementById('disp-cnpj').value = state.results.cnpj;
+            document.getElementById('header-empresa').innerText = state.results.empresa;
         };
 
-        window.processarAuditoria = async function() {
-            const tbody = document.getElementById('tabela-body');
-            tbody.innerHTML = "";
-            exportData = []; // Limpa dados anteriores
-            let recoveryTotal = 0, totalItens = 0, errorCount = 0;
+        window.processarAuditoriaCompleta = async function() {
+            if(state.xmlData.length === 0) {
+                alert("Primeiro importe os XMLs na aba '1. Importar XMLs'");
+                loadModule('auditoria', document.querySelector('.nav-link'));
+                return;
+            }
 
-            for (let file of xmlList) {
+            const tbody = document.getElementById('tabela-body');
+            if(!tbody) { // Se o usuário estiver em outra aba, força a volta para ver o resultado
+                loadModule('auditoria', document.querySelector('.nav-link'));
+                setTimeout(() => window.processarAuditoriaCompleta(), 100);
+                return;
+            }
+
+            tbody.innerHTML = "";
+            let totalRec = 0, totalItens = 0;
+
+            for (let file of state.xmlData) {
                 const text = await file.text();
                 const xml = new DOMParser().parseFromString(text, "text/xml");
-                const docId = xml.getElementsByTagName("nNF")[0]?.textContent || xml.getElementsByTagName("nCFe")[0]?.textContent || "---";
-                const dEmiRaw = xml.getElementsByTagName("dEmi")[0]?.textContent || "";
-                const mesRef = dEmiRaw ? `${MONTHS[parseInt(dEmiRaw.substring(4, 6))-1]}/${dEmiRaw.substring(0, 4)}` : "---";
-
                 const dets = xml.getElementsByTagName("det");
+                
                 Array.from(dets).forEach(det => {
                     totalItens++;
-                    const xProd = det.getElementsByTagName("xProd")[0]?.textContent || "PRODUTO";
-                    const ncm = det.getElementsByTagName("NCM")[0]?.textContent || "00000000";
+                    const xProd = det.getElementsByTagName("xProd")[0]?.textContent;
+                    const ncm = det.getElementsByTagName("NCM")[0]?.textContent;
                     const vProd = parseFloat(det.getElementsByTagName("vProd")[0]?.textContent || 0);
                     
-                    const pisCST = det.getElementsByTagName("PIS")[0]?.getElementsByTagName("CST")[0]?.textContent || "01";
-                    const icmsCSOSN = det.getElementsByTagName("ICMS")[0]?.getElementsByTagName("CSOSN")[0]?.textContent || 
-                                      det.getElementsByTagName("ICMS")[0]?.getElementsByTagName("CST")[0]?.textContent || "102";
-
-                    let status = "CONFORME", corStatus = "text-zinc-600", valRec = 0;
-                    let sug = { ncm: "", pis: "", icms: "" };
-
-                    // MOTOR DE AUDITORIA (Cálculo e Sugestão)
-                    const isMono = ["2105", "2202", "2203", "8708", "3304"].some(p => ncm.startsWith(p));
-                    if (isMono && (pisCST === "01" || pisCST === "49")) {
-                        status = "NCM MONOFÁSICO"; corStatus = "text-red-500";
-                        sug.pis = "05"; sug.icms = "500";
-                        valRec = vProd * 0.0198; errorCount++;
-                    } else if (ncm === "00000000" || ncm.length < 8) {
-                        status = "NCM ZERADO"; corStatus = "text-red-500";
-                        sug.ncm = "2105.00.10"; errorCount++;
+                    let val = 0;
+                    if(["2105", "2202", "8708"].some(p => ncm.startsWith(p))) {
+                        val = vProd * 0.0198;
+                        totalRec += val;
                     }
 
-                    recoveryTotal += valRec;
-
-                    // Injeta na Tabela do Print 8
                     const tr = document.createElement('tr');
-                    tr.className = "hover:bg-white/5 transition border-b border-zinc-900/50";
-                    tr.innerHTML = `
-                        <td class="p-4"><div class="font-bold text-zinc-100 uppercase text-[10px]">${xProd}</div><div class="text-[8px] text-orange-500">DOC: ${docId}</div></td>
-                        <td class="p-4 text-zinc-500 font-mono">O: ${ncm}</td>
-                        <td class="p-4 text-center leading-tight"><span class="badge-tax bg-pis-cof">PIS:${pisCST}</span><br><span class="badge-tax bg-icms text-[7px]">ICMS:${icmsCSOSN}</span></td>
-                        <td class="p-4 text-center leading-tight">
-                            ${sug.ncm ? `<span class="badge-tax bg-ncm-sug">NCM:${sug.ncm}</span><br>` : ''}
-                            ${sug.pis ? `<span class="badge-tax bg-pis-cof">PIS:${sug.pis}</span><br>` : ''}
-                            ${sug.icms ? `<span class="badge-tax bg-icms text-[7px]">ICMS:${sug.icms}</span>` : ''}
-                        </td>
-                        <td class="p-4 text-center"><div class="font-black ${corStatus} uppercase text-[9px]">${status}</div><div class="text-[8px] text-zinc-700">${mesRef}</div></td>
-                        <td class="p-4 text-right font-black text-green-500">${valRec > 0 ? 'R$ ' + valRec.toFixed(2) : '-'}</td>`;
+                    tr.innerHTML = `<td class="p-4 font-bold uppercase text-[10px]">${xProd}</td><td class="p-4 font-mono">${ncm}</td><td class="text-center">01</td><td class="text-center text-orange-500">05</td><td class="p-4 text-right text-green-500 font-bold">R$ ${val.toFixed(2)}</td>`;
                     tbody.appendChild(tr);
-
-                    // Prepara dados para o modelo de relatório solicitado
-                    exportData.push({ Empresa: auditResults.empresa, CNPJ: auditResults.cnpj, Mes: mesRef, Nota: docId, Produto: xProd, NCM: ncm, PIS_O: pisCST, ICMS_O: icmsCSOSN, PIS_S: sug.pis, ICMS_S: sug.icms, Status: status, Credito: valRec.toFixed(2) });
                 });
             }
 
-            // ATUALIZA KPIs (Resolvendo sua reclamação de que não mostravam)
+            state.results.valor = totalRec;
+            state.results.itens = totalItens;
             document.getElementById('kpi-itens').innerText = totalItens;
-            document.getElementById('kpi-erros').innerText = totalItens > 0 ? ((errorCount/totalItens)*100).toFixed(1) + "%" : "0%";
-            document.getElementById('kpi-valor').innerText = recoveryTotal.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
-            
-            auditResults.valor = recoveryTotal;
-            auditResults.itens = totalItens;
-            
-            // Habilita o botão de exportar
-            const btnExp = document.getElementById('btn-exportar');
-            btnExp.disabled = false; btnExp.className = "btn-action btn-orange";
-        };
-
-        window.exportarExcel = function() {
-            if(exportData.length === 0) return;
-            // Modelo de relatório confrontado conforme solicitado
-            let csv = "\ufeffEmpresa;CNPJ;Mes;Nota;Produto;NCM;PIS_O;ICMS_O;PIS_SUG;ICMS_SUG;Status;Credito\n";
-            exportData.forEach(d => { 
-                csv += `${d.Empresa};${d.CNPJ};${d.Mes};${d.Nota};${d.Produto};${d.NCM};${d.PIS_O};${d.ICMS_O};${d.PIS_S};${d.ICMS_S};${d.Status};${d.Credito}\n`; 
-            });
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.download = `AUDITORIA_${auditResults.empresa.replace(/\s+/g, '_')}.csv`;
-            link.click();
+            document.getElementById('kpi-valor').innerText = totalRec.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
+            document.getElementById('kpi-status').innerText = "CONCLUÍDO";
+            document.getElementById('kpi-status').className = "text-xl font-black mt-1 uppercase text-green-500";
         };
 
         window.gravarAuditoria = function() {
-            if(!auditResults.empresa || auditResults.valor === 0) {
-                alert("Realize uma auditoria antes de gravar!");
-                return;
-            }
-            const dados = { empresa: auditResults.empresa, cnpj: auditResults.cnpj, mes: auditResults.periodo, valor: auditResults.valor, volume: auditResults.itens, data: new Date().toISOString() };
+            if(state.results.valor === 0) return alert("Efetue a auditoria primeiro!");
             let historico = JSON.parse(localStorage.getItem('auditoria_salva')) || [];
-            historico.push(dados);
+            historico.push({...state.results, data: new Date().toISOString()});
             localStorage.setItem('auditoria_salva', JSON.stringify(historico));
-            alert("✅ Gravado com sucesso no Histórico!");
+            alert("✅ Dados enviados ao Histórico Global!");
         };
+
+        function restoreState() {
+            if(state.results.empresa) {
+                document.getElementById('disp-empresa').value = state.results.empresa;
+                document.getElementById('disp-cnpj').value = state.results.results.cnpj;
+                document.getElementById('kpi-notas').innerText = state.xmlData.length;
+            }
+        }
 
         function toggleMenu(id) { const m = document.getElementById(id); m.style.display = m.style.display === 'block' ? 'none' : 'block'; }
         window.onload = () => loadModule('auditoria', document.querySelector('.nav-link'));

@@ -36,9 +36,11 @@
             <div class="section-title">Extração de Dados</div>
             <div class="nav-link active" onclick="showTab('auditoria-panel', this)"><i class="fas fa-file-export"></i> Extrair Dados XML</div>
             <div class="nav-link" onclick="showTab('extrato-frame', this, 'extrato simples.html')"><i class="fas fa-file-invoice"></i> Extrator PGDAS-D</div>
+            
             <div class="section-title">Ações</div>
             <div class="nav-link" style="color: #f97316;" onclick="window.efetuarAuditoria()"><i class="fas fa-bolt"></i> Efetuar Auditoria</div>
             <div class="nav-link" onclick="window.gravarProcessamento()"><i class="fas fa-save"></i> Gravar Auditoria</div>
+            
             <div class="section-title">Histórico e Consultas</div>
             <div class="nav-link" onclick="showTab('historico-frame', this, 'histórico.html')"><i class="fas fa-database"></i> Histórico Global</div>
             <div class="nav-link" onclick="showTab('retificacoes-frame', this, 'Retificacoes.html')"><i class="fas fa-edit"></i> Painel de Retificações</div>
@@ -84,8 +86,8 @@
             </div>
 
             <div class="grid grid-cols-3 gap-6">
-                <div class="dashboard-card p-5 border-l-4 border-orange-500"><p class="text-[9px] text-zinc-500 uppercase font-bold">Quantidade de Notas</p><h3 id="kpi-notas" class="text-3xl font-black mt-1">0</h3></div>
-                <div class="dashboard-card p-5 border-l-4 border-orange-500"><p class="text-[9px] text-zinc-500 uppercase font-bold">Quantidade de Itens</p><h3 id="kpi-itens" class="text-3xl font-black mt-1">0</h3></div>
+                <div class="dashboard-card p-5 border-l-4 border-orange-500"><p class="text-[9px] text-zinc-500 uppercase font-bold tracking-widest">Quantidade de Notas</p><h3 id="kpi-notas" class="text-3xl font-black mt-1">0</h3></div>
+                <div class="dashboard-card p-5 border-l-4 border-orange-500"><p class="text-[9px] text-zinc-500 uppercase font-bold tracking-widest">Quantidade de Itens</p><h3 id="kpi-itens" class="text-3xl font-black mt-1">0</h3></div>
                 <div class="dashboard-card p-5 border-l-4 border-red-600"><p class="text-[9px] text-zinc-500 uppercase font-bold text-red-600">Inconsistências (%)</p><h3 id="kpi-erros" class="text-3xl font-black text-red-600 mt-1">0%</h3></div>
             </div>
         </div>
@@ -130,6 +132,7 @@
             const dEmi = xml.getElementsByTagName("dEmi")[0]?.textContent || "";
             let mesAno = "---";
             if(dEmi.length >= 8) mesAno = `${MONTHS[parseInt(dEmi.substring(4, 6)) - 1]}/${dEmi.substring(0, 4)}`;
+            
             document.getElementById('disp-cnpj').value = cnpjF;
             document.getElementById('disp-empresa').value = nome;
             document.getElementById('header-empresa').innerText = nome;
@@ -140,6 +143,7 @@
         window.extrairDadosXML = async function() {
             exportDataMaster = [];
             let totalItens = 0, totalErros = 0;
+
             for (let file of xmlList) {
                 const text = await file.text();
                 const xml = new DOMParser().parseFromString(text, "text/xml");
@@ -147,40 +151,59 @@
                 const dEmi = xml.getElementsByTagName("dEmi")[0]?.textContent || "";
                 const mesRef = dEmi ? `${MONTHS[parseInt(dEmi.substring(4, 6)) - 1]}/${dEmi.substring(0, 4)}` : window.processSummary.periodo;
                 const dets = xml.getElementsByTagName("det");
+
                 Array.from(dets).forEach(det => {
                     totalItens++;
                     const xProd = det.getElementsByTagName("xProd")[0]?.textContent || "";
                     const ncm = det.getElementsByTagName("NCM")[0]?.textContent || "";
                     const vProd = parseFloat(det.getElementsByTagName("vProd")[0]?.textContent || 0);
                     const pisCST = det.getElementsByTagName("PIS")[0]?.getElementsByTagName("CST")[0]?.textContent || "01";
+
                     if (ncm === "00000000" || ncm.length < 8) totalErros++;
+
                     let vCred = 0;
-                    if (["2105", "2202", "8708"].some(p => ncm.startsWith(p)) && (pisCST === "01" || pisCST === "49")) vCred = vProd * 0.0198;
-                    exportDataMaster.push({ Empresa: window.processSummary.empresa, CNPJ: window.processSummary.cnpj, Mes: mesRef, Nota: nNF, Produto: xProd, NCM: ncm, Credito: vCred.toFixed(2) });
+                    if (["2105", "2202", "8708"].some(p => ncm.startsWith(p)) && (pisCST === "01" || pisCST === "49")) {
+                        vCred = vProd * 0.0198;
+                    }
+
+                    exportDataMaster.push({ 
+                        Empresa: window.processSummary.empresa, 
+                        CNPJ: window.processSummary.cnpj,
+                        Mes: mesRef,
+                        Nota: nNF, 
+                        Produto: xProd, 
+                        NCM: ncm, 
+                        Credito: vCred.toFixed(2)
+                    });
                 });
             }
+
             document.getElementById('kpi-itens').innerText = totalItens;
             document.getElementById('kpi-erros').innerText = totalItens > 0 ? ((totalErros/totalItens)*100).toFixed(1) + "%" : "0%";
             window.processSummary.itens = totalItens;
+
             document.getElementById('btn-export-main').disabled = false;
             document.getElementById('btn-export-main').className = "btn-action btn-orange";
+            
             alert(`✅ EXTRAÇÃO FINALIZADA!\n\nForam extraídas todas as informações de ${xmlList.length} arquivos.\nTotal de ${totalItens} itens processados.`);
         };
 
         window.exportarExcelTudo = function() {
             if(exportDataMaster.length === 0) return;
             let csv = "\ufeffEmpresa;CNPJ;Mes;Nota;Produto;NCM;Credito\n";
-            exportDataMaster.forEach(d => { csv += `${d.Empresa};${d.CNPJ};${d.Mes};${d.Nota};${d.Produto};${d.NCM};${d.Credito}\n`; });
+            exportDataMaster.forEach(d => { 
+                csv += `${d.Empresa};${d.CNPJ};${d.Mes};${d.Nota};${d.Produto};${d.NCM};${d.Credito}\n`; 
+            });
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.download = `RELATORIO_EXTRAÇÃO_${window.processSummary.empresa}.csv`;
+            link.download = `RELATORIO_ITENS_${window.processSummary.empresa}.csv`;
             link.click();
         };
 
         window.efetuarAuditoria = function() {
             if(window.processSummary.itens === 0) return alert("Extraia os dados XML primeiro!");
-            alert("🔍 Cruzando dados...\nAuditoria finalizada com sucesso!");
+            alert("🔍 Iniciando Auditoria Cruzada...\nProcesso finalizado com sucesso!");
         };
 
         window.gravarProcessamento = function() {
@@ -188,7 +211,7 @@
             let hist = JSON.parse(localStorage.getItem('auditoria_salva')) || [];
             hist.push({ ...window.processSummary, data: new Date().toISOString() });
             localStorage.setItem('auditoria_salva', JSON.stringify(hist));
-            alert("✅ Gravado com sucesso no Histórico Global!");
+            alert("✅ Registro gravado no Histórico!");
         };
     </script>
 </body>

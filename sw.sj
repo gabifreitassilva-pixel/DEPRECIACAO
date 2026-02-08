@@ -1,5 +1,5 @@
 // 1. Mude a versão (v1.5) sempre que alterar qualquer código nos seus arquivos HTML ou leis
-const CACHE_NAME = 'auditor-fiscal-v1.5';
+const CACHE_NAME = 'auditor-fiscal-v1.6';
 
 // 2. Lista completa e exata de arquivos que devem funcionar offline
 const assets = [
@@ -65,3 +65,4 @@ self.addEventListener('fetch', event => {
     })
   );
 });
+

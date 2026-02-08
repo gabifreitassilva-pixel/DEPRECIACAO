@@ -1,11 +1,10 @@
 // Nome do cache - mude a versão para forçar atualização no navegador do cliente
-const CACHE_NAME = 'auditor-fiscal-v1.2';
+const CACHE_NAME = 'auditor-fiscal-v1.3';
 
 // Lista de arquivos que o SW deve gerenciar e manter atualizados
 const assets = [
   './',
   './index.html',
-  './auditor.html',
   './auto pecas.html',
   './bebidas alcolicas exceto cerveja e chope.html',
   './perfumaria e higiene pessoal.html',
@@ -44,3 +43,4 @@ self.addEventListener('fetch', event => {
   );
 
 });
+

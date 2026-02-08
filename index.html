@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FISCAL AUDIT - V7.2 Integrated System</title>
+    <title>FISCAL AUDIT - Extração Total v7.2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -14,208 +14,231 @@
         .nav-link { padding: 12px 25px; font-size: 11px; font-weight: 700; color: #ffffff; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: 0.2s; text-transform: uppercase; border-left: 3px solid transparent; }
         .nav-link:hover, .nav-link.active { color: var(--orange-main); background: #080808; border-left-color: var(--orange-main); }
         .section-title { padding: 25px 25px 10px; font-size: 9px; font-weight: 900; color: #444; text-transform: uppercase; letter-spacing: 2px; }
-        #dynamic-content { flex: 1; overflow-y: auto; background: #050505; position: relative; }
-        .module-padding { padding: 30px; }
+        .main-content { flex: 1; padding: 30px; overflow-y: auto; background: #050505; }
         .dashboard-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 15px; }
         .orange-border { border: 1.5px solid var(--orange-main); }
         input { background: #080808 !important; border: 1px solid var(--border-color) !important; color: #fff !important; padding: 10px; border-radius: 5px; font-size: 12px; width: 100%; outline: none; }
         .btn-action { width: 100%; padding: 12px; border-radius: 8px; font-size: 11px; font-weight: 900; text-transform: uppercase; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-gray { background: #1a1a1a; color: #444; cursor: not-allowed; }
         .btn-orange { background: var(--orange-main); color: #000; cursor: pointer; }
-        .btn-orange:hover { background: #fb923c; transform: translateY(-1px); }
-        .badge-tax { font-size: 8px; padding: 2px 5px; border-radius: 3px; font-weight: bold; margin-right: 2px; text-transform: uppercase; }
-        .bg-pis-cof { background-color: #3b82f6; color: white; }
-        .bg-icms { background-color: #f59e0b; color: white; }
-        table { width: 100%; border-collapse: collapse; font-size: 11px; }
-        th { text-align: left; color: #444; border-bottom: 1px solid #111; padding: 15px 10px; text-transform: uppercase; }
-        td { padding: 12px 10px; border-bottom: 1px solid #0d0d0d; }
-        .expand-content { display: none; background: #050505; padding: 5px 0; }
-        .sub-link { padding: 8px 50px; color: #ffffff; font-size: 10px; cursor: pointer; display: block; text-transform: uppercase; font-weight: bold; }
+        .btn-orange:hover:not(:disabled) { background: #fb923c; transform: translateY(-1px); }
+        iframe { width: 100%; height: 100vh; border: none; display: none; }
     </style>
 </head>
 <body>
 
     <aside class="sidebar">
-        <div class="p-8 border-b border-zinc-900 mb-2 text-center">
+        <div class="p-8 border-b border-zinc-900 mb-2">
             <h1 class="text-2xl font-black italic tracking-tighter text-white">FISCAL<span class="text-[#f97316]">AUDIT</span></h1>
-            <p class="text-[8px] text-zinc-600 font-bold uppercase tracking-[0.3em]">V7.2 Integrated System</p>
+            <p class="text-[8px] text-zinc-600 font-bold uppercase tracking-[0.3em]">V7.2 Total Extraction System</p>
         </div>
         <nav>
-            <div class="section-title">Entrada de Dados</div>
-            <div class="nav-link active" onclick="loadModule('auditoria', this)"><i class="fas fa-file-code"></i> 1. Importar XMLs</div>
-            <div class="nav-link" onclick="loadModule('extrato simples.html', this)"><i class="fas fa-file-invoice"></i> 2. Extrato PGDAS-D</div>
-            
-            <div class="section-title">Processamento</div>
-            <div class="nav-link" style="color: #f97316;" onclick="window.processarAuditoriaCompleta()"><i class="fas fa-bolt"></i> EFETUAR AUDITORIA</div>
-            
-            <div class="section-title">Ações e Histórico</div>
-            <div class="nav-link" onclick="window.gravarAuditoria()"><i class="fas fa-save"></i> Gravar Auditoria</div>
-            <div class="nav-link" onclick="loadModule('histórico.html', this)"><i class="fas fa-database"></i> Histórico Global</div>
-            <div class="nav-link" onclick="loadModule('retificacoes.html', this)"><i class="fas fa-edit"></i> Retificações</div>
-            
-            <div class="section-title">Base Legal Estadual (SP)</div>
-            <div class="nav-link flex justify-between" onclick="toggleMenu('menu-sp')"><span><i class="fas fa-box text-[#f97316]"></i> Anexos ICMS-ST</span><i class="fas fa-chevron-down ml-auto text-[8px]"></i></div>
-            <div id="menu-sp" class="expand-content">
-                <span class="sub-link" onclick="loadModule('auto pecas.html', this)">Autopeças</span>
-                <span class="sub-link" onclick="loadModule('bebidas alcolicas exceto cerveja e chope.html', this)">Bebidas</span>
-            </div>
+            <div class="section-title">Módulo de Extração</div>
+            <div class="nav-link active" onclick="showTab('auditoria-panel', this)"><i class="fas fa-file-export"></i> Extrair Dados XML</div>
+            <div class="nav-link" onclick="showTab('extrato-frame', this, 'extrato simples.html')"><i class="fas fa-file-invoice"></i> Extrator PGDAS-D</div>
+            <div class="section-title">Ações</div>
+            <div class="nav-link" onclick="window.gravarProcessamento()"><i class="fas fa-save"></i> Gravar no Histórico</div>
+            <div class="nav-link" onclick="showTab('historico-frame', this, 'histórico.html')"><i class="fas fa-database"></i> Histórico Global</div>
         </nav>
     </aside>
 
-    <main id="dynamic-content"></main>
+    <main class="flex-1 relative">
+        <div id="auditoria-panel" class="main-content">
+            <header class="flex justify-between items-center mb-10">
+                <div class="flex items-center gap-4">
+                    <div class="bg-orange-600 p-3 rounded-xl text-black"><i class="fas fa-database text-2xl"></i></div>
+                    <div>
+                        <h2 class="text-2xl font-black italic text-white">Extrator <span class="text-[#f97316]">Full Tags</span> XML</h2>
+                        <p id="header-empresa" class="text-[9px] text-zinc-500 font-bold uppercase tracking-[0.3em]">Pronto para Processamento Massivo</p>
+                    </div>
+                </div>
+            </header>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <div class="dashboard-card p-6 orange-border">
+                    <h4 class="text-[10px] font-black uppercase text-[#f97316] mb-6 flex items-center gap-2"><i class="fas fa-id-card"></i> Identificação</h4>
+                    <div class="space-y-4">
+                        <div><label class="text-[9px] text-zinc-600 font-bold uppercase ml-1">Empresa</label><input type="text" id="disp-empresa" readonly></div>
+                        <div><label class="text-[9px] text-zinc-600 font-bold uppercase ml-1">CNPJ</label><input type="text" id="disp-cnpj" readonly></div>
+                        <div><label class="text-[9px] text-zinc-600 font-bold uppercase ml-1">Período</label><input type="text" id="disp-periodo" readonly></div>
+                    </div>
+                </div>
+                <div class="dashboard-card p-6 orange-border flex flex-col">
+                    <h4 class="text-[10px] font-black uppercase text-[#f97316] mb-4 flex items-center gap-2"><i class="fas fa-folder-open"></i> Importar XMLs</h4>
+                    <div class="flex-1 border-2 border-dashed border-zinc-900 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:bg-zinc-900/30 mb-4" onclick="document.getElementById('xml-input').click()">
+                        <i class="fas fa-cloud-arrow-up text-3xl text-zinc-800 mb-4"></i>
+                        <p id="upload-label" class="text-[10px] text-zinc-600 font-bold uppercase text-center px-4">Selecione arquivos para extração total</p>
+                        <input type="file" id="xml-input" multiple accept=".xml" class="hidden" onchange="window.handleFiles(this.files)">
+                    </div>
+                    <button id="btn-iniciar" onclick="window.extrairDadosXML()" class="btn-action btn-gray" disabled><i class="fas fa-bolt"></i> EXTRAIR DADOS XML</button>
+                </div>
+                <div class="dashboard-card p-6 orange-border">
+                    <h4 class="text-[10px] font-black uppercase text-[#f97316] mb-6 flex items-center gap-2"><i class="fas fa-cog"></i> Gerenciamento</h4>
+                    <div class="space-y-3">
+                        <button id="btn-exportar" class="btn-action btn-gray" onclick="window.exportarExcelTudo()" disabled><i class="fas fa-file-excel"></i> Exportar Planilha Completa</button>
+                        <button onclick="location.reload()" class="btn-action btn-outline mt-2"><i class="fas fa-broom"></i> Limpar Tudo</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-6">
+                <div class="dashboard-card p-5 border-l-4 border-orange-500"><p class="text-[9px] text-zinc-500 uppercase font-bold">Documentos Lidos</p><h3 id="kpi-notas" class="text-3xl font-black mt-1">0</h3></div>
+                <div class="dashboard-card p-5 border-l-4 border-orange-500"><p class="text-[9px] text-zinc-500 uppercase font-bold">Total de Itens Extraídos</p><h3 id="kpi-itens" class="text-3xl font-black mt-1">0</h3></div>
+                <div class="dashboard-card p-5 border-l-4 border-red-600"><p class="text-[9px] text-zinc-500 uppercase font-bold text-red-600">Inconsistências Identificadas</p><h3 id="kpi-erros" class="text-3xl font-black text-red-600 mt-1">0%</h3></div>
+            </div>
+        </div>
+
+        <iframe id="extrato-frame"></iframe>
+        <iframe id="historico-frame"></iframe>
+    </main>
 
     <script>
         const MONTHS = ["JANEIRO", "FEVEREIRO", "MARÇO", "ABRIL", "MAIO", "JUNHO", "JULHO", "AGOSTO", "SETEMBRO", "OUTUBRO", "NOVEMBRO", "DEZEMBRO"];
-        
-        // Memória Global para não perder dados entre abas
-        let state = {
-            xmlData: [],
-            pgdasData: null,
-            results: { empresa: '', cnpj: '', periodo: '', valor: 0, itens: 0 }
+        let xmlList = [];
+        let exportDataMaster = []; 
+        window.processSummary = { empresa: '', cnpj: '', periodo: '', itens: 0 };
+
+        function showTab(tabId, element, url = null) {
+            document.querySelectorAll('main > div, main > iframe').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+            const target = document.getElementById(tabId);
+            target.style.display = 'block';
+            if (url && target.tagName === 'IFRAME' && !target.src) target.src = url;
+            element.classList.add('active');
+        }
+
+        window.handleFiles = function(files) {
+            xmlList = Array.from(files);
+            if(xmlList.length > 0) {
+                document.getElementById('upload-label').innerText = xmlList.length + " Arquivos Carregados";
+                const btn = document.getElementById('btn-iniciar');
+                btn.disabled = false; btn.className = "btn-action btn-orange";
+                document.getElementById('kpi-notas').innerText = xmlList.length;
+                window.lerHeader(xmlList[0]);
+            }
         };
 
-        function loadModule(target, element) {
-            const container = document.getElementById('dynamic-content');
-            if (element) {
-                document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
-                element.classList.add('active');
-            }
-            if (target === 'auditoria') { 
-                renderAuditor(container);
-                restoreState(); // Recupera o que já foi importado
-            } else { 
-                container.innerHTML = `<iframe src="${target}" id="module-frame" style="width:100%; height:100vh; border:none;"></iframe>`; 
-            }
-        }
-
-        function renderAuditor(container) {
-            container.innerHTML = `
-                <div class="module-padding">
-                    <header class="flex justify-between items-center mb-10">
-                        <div class="flex items-center gap-4">
-                            <div class="bg-orange-600 p-3 rounded-xl text-black"><i class="fas fa-microchip text-2xl"></i></div>
-                            <div><h2 class="text-2xl font-black italic text-white">Painel de <span class="text-[#f97316]">Cruzamento</span></h2><p class="text-[9px] text-zinc-500 font-bold uppercase tracking-[0.3em]">XML + PGDAS DATA MATCH</p></div>
-                        </div>
-                        <div class="text-right"><span id="header-empresa" class="block font-black text-[#f97316] text-xl italic uppercase">Aguardando Importação</span></div>
-                    </header>
-
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                        <div class="dashboard-card p-6 orange-border flex flex-col">
-                            <h4 class="text-[10px] font-black uppercase text-[#f97316] mb-4 flex items-center gap-2"><i class="fas fa-cloud-upload-alt"></i> Upload de XMLs</h4>
-                            <input type="file" id="xml-input" multiple accept=".xml" class="hidden" onchange="window.handleFiles(this.files)">
-                            <div class="flex-1 border-2 border-dashed border-zinc-900 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:bg-zinc-900/30 p-10" onclick="document.getElementById('xml-input').click()">
-                                <p id="upload-label" class="text-[10px] text-zinc-600 font-bold uppercase">Clique para selecionar arquivos</p>
-                            </div>
-                        </div>
-                        <div class="dashboard-card p-6 orange-border">
-                            <h4 class="text-[10px] font-black uppercase text-[#f97316] mb-6 flex items-center gap-2"><i class="fas fa-info-circle"></i> Resumo da Empresa</h4>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div><label class="text-[9px] text-zinc-600 font-bold uppercase">Empresa</label><input type="text" id="disp-empresa" readonly></div>
-                                <div><label class="text-[9px] text-zinc-600 font-bold uppercase">CNPJ</label><input type="text" id="disp-cnpj" readonly></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-4 gap-6 mb-8">
-                        <div class="dashboard-card p-5 border-l-4 border-orange-500"><p class="text-[9px] text-zinc-500 uppercase font-bold">XMLs Carregados</p><h3 id="kpi-notas" class="text-3xl font-black mt-1">0</h3></div>
-                        <div class="dashboard-card p-5 border-l-4 border-blue-500"><p class="text-[9px] text-zinc-500 uppercase font-bold">Itens Identificados</p><h3 id="kpi-itens" class="text-3xl font-black mt-1">0</h3></div>
-                        <div class="dashboard-card p-5 border-l-4 border-green-500"><p class="text-[9px] text-zinc-500 uppercase font-bold">Crédito Estimado</p><h3 id="kpi-valor" class="text-3xl font-black text-green-500 mt-1">R$ 0,00</h3></div>
-                        <div class="dashboard-card p-5 border-l-4 border-white"><p class="text-[9px] text-zinc-500 uppercase font-bold">Status Auditoria</p><h3 id="kpi-status" class="text-xl font-black mt-1 uppercase">Aguardando</h3></div>
-                    </div>
-
-                    <div class="dashboard-card overflow-hidden">
-                        <table id="result-table">
-                            <thead class="bg-black">
-                                <tr><th>Documento / Produto</th><th>NCM</th><th class="text-center">Trib. Original</th><th class="text-center text-orange-500">Sugestão</th><th class="text-right">V. Recuperável</th></tr>
-                            </thead>
-                            <tbody id="tabela-body">
-                                <tr><td colspan="5" class="p-10 text-center opacity-20 uppercase font-black">Nenhuma auditoria processada</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>`;
-        }
-
-        window.handleFiles = async function(files) {
-            state.xmlData = Array.from(files);
-            document.getElementById('upload-label').innerText = state.xmlData.length + " XMLs Prontos";
-            document.getElementById('kpi-notas').innerText = state.xmlData.length;
-            
-            const text = await state.xmlData[0].text();
+        window.lerHeader = async function(file) {
+            const text = await file.text();
             const xml = new DOMParser().parseFromString(text, "text/xml");
-            state.results.empresa = xml.getElementsByTagName("xNome")[0]?.textContent || "EMPRESA S/A";
-            state.results.cnpj = xml.getElementsByTagName("CNPJ")[0]?.textContent || "";
-            
-            document.getElementById('disp-empresa').value = state.results.empresa;
-            document.getElementById('disp-cnpj').value = state.results.cnpj;
-            document.getElementById('header-empresa').innerText = state.results.empresa;
+            const cnpjRaw = xml.getElementsByTagName("CNPJ")[0]?.textContent || "";
+            const cnpjF = cnpjRaw.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5");
+            const nome = xml.getElementsByTagName("xNome")[0]?.textContent || "EMPRESA";
+            const dEmi = xml.getElementsByTagName("dEmi")[0]?.textContent || "";
+            let mesAno = "---";
+            if(dEmi.length >= 8) {
+                mesAno = `${MONTHS[parseInt(dEmi.substring(4, 6)) - 1]}/${dEmi.substring(0, 4)}`;
+            }
+            document.getElementById('disp-cnpj').value = cnpjF;
+            document.getElementById('disp-empresa').value = nome;
+            document.getElementById('header-empresa').innerText = nome;
+            document.getElementById('disp-periodo').value = mesAno;
+            window.processSummary = { empresa: nome, cnpj: cnpjF, periodo: mesAno, itens: 0 };
         };
 
-        window.processarAuditoriaCompleta = async function() {
-            if(state.xmlData.length === 0) {
-                alert("Primeiro importe os XMLs na aba '1. Importar XMLs'");
-                loadModule('auditoria', document.querySelector('.nav-link'));
-                return;
-            }
+        window.extrairDadosXML = async function() {
+            exportDataMaster = [];
+            let totalItens = 0, totalErros = 0;
 
-            const tbody = document.getElementById('tabela-body');
-            if(!tbody) { // Se o usuário estiver em outra aba, força a volta para ver o resultado
-                loadModule('auditoria', document.querySelector('.nav-link'));
-                setTimeout(() => window.processarAuditoriaCompleta(), 100);
-                return;
-            }
-
-            tbody.innerHTML = "";
-            let totalRec = 0, totalItens = 0;
-
-            for (let file of state.xmlData) {
+            for (let file of xmlList) {
                 const text = await file.text();
                 const xml = new DOMParser().parseFromString(text, "text/xml");
-                const dets = xml.getElementsByTagName("det");
                 
+                // Tags de Cabeçalho da Nota
+                const nNF = xml.getElementsByTagName("nNF")[0]?.textContent || xml.getElementsByTagName("nCFe")[0]?.textContent || "---";
+                const dEmi = xml.getElementsByTagName("dEmi")[0]?.textContent || "";
+                const mesRef = dEmi ? `${MONTHS[parseInt(dEmi.substring(4, 6)) - 1]}/${dEmi.substring(0, 4)}` : window.processSummary.periodo;
+                const cnpjEmit = xml.getElementsByTagName("CNPJ")[0]?.textContent || "";
+                const nomeEmit = xml.getElementsByTagName("xNome")[0]?.textContent || "";
+
+                const dets = xml.getElementsByTagName("det");
+
                 Array.from(dets).forEach(det => {
                     totalItens++;
-                    const xProd = det.getElementsByTagName("xProd")[0]?.textContent;
-                    const ncm = det.getElementsByTagName("NCM")[0]?.textContent;
-                    const vProd = parseFloat(det.getElementsByTagName("vProd")[0]?.textContent || 0);
                     
-                    let val = 0;
-                    if(["2105", "2202", "8708"].some(p => ncm.startsWith(p))) {
-                        val = vProd * 0.0198;
-                        totalRec += val;
+                    // EXTRAÇÃO TOTAL DE TAGS DO ITEM
+                    const xProd = det.getElementsByTagName("xProd")[0]?.textContent || "";
+                    const ncm = det.getElementsByTagName("NCM")[0]?.textContent || "";
+                    const cfop = det.getElementsByTagName("CFOP")[0]?.textContent || "";
+                    const uCom = det.getElementsByTagName("uCom")[0]?.textContent || "";
+                    const qCom = det.getElementsByTagName("qCom")[0]?.textContent || "0";
+                    const vUnCom = det.getElementsByTagName("vUnCom")[0]?.textContent || "0";
+                    const vProd = parseFloat(det.getElementsByTagName("vProd")[0]?.textContent || 0);
+
+                    // Tags de Impostos (PIS/COFINS/ICMS)
+                    const pisTag = det.getElementsByTagName("PIS")[0];
+                    const pisCST = pisTag ? (pisTag.getElementsByTagName("CST")[0]?.textContent || "") : "";
+                    
+                    const cofinsTag = det.getElementsByTagName("COFINS")[0];
+                    const cofinsCST = cofinsTag ? (cofinsTag.getElementsByTagName("CST")[0]?.textContent || "") : "";
+
+                    const icmsTag = det.getElementsByTagName("ICMS")[0];
+                    const icmsCST = icmsTag ? (icmsTag.getElementsByTagName("CST")[0]?.textContent || icmsTag.getElementsByTagName("CSOSN")[0]?.textContent || "") : "";
+
+                    // Lógica de cálculo de crédito (baseada no modelo solicitado)
+                    let vCred = 0;
+                    if (ncm === "00000000" || ncm.length < 8) totalErros++;
+                    
+                    // Exemplo Monofásico (Sorvetes/Bebidas/Autopeças)
+                    if (["2105", "2202", "8708", "3304"].some(p => ncm.startsWith(p)) && (pisCST === "01" || pisCST === "49")) {
+                        vCred = vProd * 0.0198; // Alíquota média segregação
                     }
 
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `<td class="p-4 font-bold uppercase text-[10px]">${xProd}</td><td class="p-4 font-mono">${ncm}</td><td class="text-center">01</td><td class="text-center text-orange-500">05</td><td class="p-4 text-right text-green-500 font-bold">R$ ${val.toFixed(2)}</td>`;
-                    tbody.appendChild(tr);
+                    // Push completo para o Excel
+                    exportDataMaster.push({ 
+                        Empresa: nomeEmit, 
+                        CNPJ: cnpjEmit.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5"),
+                        Mes: mesRef,
+                        Nota: nNF, 
+                        Produto: xProd, 
+                        NCM: ncm,
+                        CFOP: cfop,
+                        Unidade: uCom,
+                        Qtd: qCom,
+                        Unitario: vUnCom,
+                        Total_Item: vProd.toFixed(2),
+                        CST_PIS: pisCST,
+                        CST_COFINS: cofinsCST,
+                        CST_ICMS: icmsCST,
+                        Credito: vCred.toFixed(2)
+                    });
                 });
             }
 
-            state.results.valor = totalRec;
-            state.results.itens = totalItens;
             document.getElementById('kpi-itens').innerText = totalItens;
-            document.getElementById('kpi-valor').innerText = totalRec.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
-            document.getElementById('kpi-status').innerText = "CONCLUÍDO";
-            document.getElementById('kpi-status').className = "text-xl font-black mt-1 uppercase text-green-500";
+            document.getElementById('kpi-erros').innerText = totalItens > 0 ? ((totalErros/totalItens)*100).toFixed(1) + "%" : "0%";
+            window.processSummary.itens = totalItens;
+
+            document.getElementById('btn-exportar').disabled = false;
+            document.getElementById('btn-exportar').className = "btn-action btn-orange";
+            
+            alert(`✅ EXTRAÇÃO COMPLETA FINALIZADA!\n\nProcessamos ${xmlList.length} arquivos.\nTotal de ${totalItens} itens capturados com todas as tags fiscais.`);
         };
 
-        window.gravarAuditoria = function() {
-            if(state.results.valor === 0) return alert("Efetue a auditoria primeiro!");
-            let historico = JSON.parse(localStorage.getItem('auditoria_salva')) || [];
-            historico.push({...state.results, data: new Date().toISOString()});
-            localStorage.setItem('auditoria_salva', JSON.stringify(historico));
-            alert("✅ Dados enviados ao Histórico Global!");
+        window.exportarExcelTudo = function() {
+            if(exportDataMaster.length === 0) return;
+            
+            // Definição das Colunas - EXTRAÇÃO TOTAL
+            let csv = "\ufeffEmpresa;CNPJ;Mes;Nota;Produto;NCM;CFOP;Unidade;Qtd;Unitario;Total_Item;CST_PIS;CST_COFINS;CST_ICMS;Credito_Calculado\n";
+            
+            exportDataMaster.forEach(d => { 
+                csv += `${d.Empresa};${d.CNPJ};${d.Mes};${d.Nota};${d.Produto};${d.NCM};${d.CFOP};${d.Unidade};${d.Qtd};${d.Unitario};${d.Total_Item};${d.CST_PIS};${d.CST_COFINS};${d.CST_ICMS};${d.Credito}\n`; 
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `RELATORIO_COMPLETO_FISCAL_${window.processSummary.empresa}.csv`;
+            link.click();
         };
 
-        function restoreState() {
-            if(state.results.empresa) {
-                document.getElementById('disp-empresa').value = state.results.empresa;
-                document.getElementById('disp-cnpj').value = state.results.results.cnpj;
-                document.getElementById('kpi-notas').innerText = state.xmlData.length;
-            }
-        }
-
-        function toggleMenu(id) { const m = document.getElementById(id); m.style.display = m.style.display === 'block' ? 'none' : 'block'; }
-        window.onload = () => loadModule('auditoria', document.querySelector('.nav-link'));
+        window.gravarProcessamento = function() {
+            if(window.processSummary.itens === 0) return alert("Extraia os dados primeiro!");
+            let hist = JSON.parse(localStorage.getItem('auditoria_salva')) || [];
+            hist.push({ ...window.processSummary, data: new Date().toISOString() });
+            localStorage.setItem('auditoria_salva', JSON.stringify(hist));
+            alert("✅ Gravado com sucesso no Banco Local!");
+        };
     </script>
 </body>
 </html>

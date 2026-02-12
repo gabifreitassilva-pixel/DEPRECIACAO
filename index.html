@@ -1,63 +1,379 @@
-// Função para converter arquivo em Base64
-async function fileToBase64(file) {
-    return new Promise((resolve, reject) => {
-        if (!file) resolve(null);
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = error => reject(error);
-    });
-}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#1a1a1a">
+    <title>FISCO CAPITAL - Simulador Profissional</title>
+    <link rel="manifest" href="manifest.json">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            black: '#0f0f0f', dark: '#1a1a1a', gray: '#2a2a2a',
+                            orange: '#f97316', orangeHover: '#ea580c', text: '#f3f4f6',
+                            muted: '#9ca3af', success: '#10b981', danger: '#ef4444', info: '#3b82f6'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        input[type="file"]::file-selector-button {
+            background-color: #2a2a2a; color: #f97316; border: 1px solid #f97316;
+            padding: 0.25rem 0.5rem; border-radius: 0.25rem; cursor: pointer; margin-right: 10px;
+        }
+        .tab-active { border-bottom: 2px solid #f97316; color: #f97316; }
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; color: black !important; }
+            #view-calculadora { display: block !important; }
+        }
+    </style>
+</head>
+<body class="bg-brand-black text-brand-text min-h-screen pb-10">
 
-async function calcularSimulacao() {
-    const editId = document.getElementById('editId').value;
-    
-    // Captura de arquivos (Novos ou manter antigos se estiver editando)
-    const fileNFCompra = document.getElementById('nfCompra').files[0];
-    const fileNFVenda = document.getElementById('nfVenda').files[0];
-    const fileDecl = document.getElementById('fileDeclaracao').files[0];
+    <header class="bg-brand-dark border-b border-brand-gray sticky top-0 z-50 no-print">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="bg-brand-orange/10 p-2 rounded border border-brand-orange/20">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-brand-orange" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold tracking-tighter text-white">FISCO <span class="text-brand-orange">CAPITAL</span></h1>
+                </div>
+            </div>
+        </div>
+    </header>
 
-    // Se estiver editando, busca o item antigo para manter os arquivos caso não suba novos
-    let itemAntigo = editId ? historico.find(i => i.id == editId) : null;
+    <main class="max-w-7xl mx-auto px-4 py-8">
+        <div class="tabs-nav flex gap-6 mb-8 border-b border-brand-gray text-sm font-medium overflow-x-auto no-print">
+            <button onclick="switchTab('calculadora')" id="tab-calculadora" class="pb-3 tab-active">Simulador & Cálculo</button>
+            <button onclick="switchTab('guia')" id="tab-guia" class="pb-3 text-brand-muted">Guia Fiscal</button>
+            <button onclick="switchTab('historico')" id="tab-historico" class="pb-3 text-brand-muted">Histórico & Backup</button>
+        </div>
 
-    const f = {
-        empresa: document.getElementById('nomeEmpresa').value,
-        regime: document.getElementById('regimeTributario').value,
-        bem: document.getElementById('descricao').value,
-        vlrAq: parseCurrency(document.getElementById('valorAquisicao').value),
-        vlrVenda: parseCurrency(document.getElementById('valorVenda').value),
-        despesas: parseCurrency(document.getElementById('despesasVenda').value),
-        dtAq: document.getElementById('dataAquisicao').value,
-        dtVenda: document.getElementById('dataVenda').value,
-        taxa: parseFloat(document.getElementById('tipoDepreciacao').value),
-        // Processamento de arquivos
-        docCompra: fileNFCompra ? await fileToBase64(fileNFCompra) : (itemAntigo ? itemAntigo.docCompra : null),
-        docVenda: fileNFVenda ? await fileToBase64(fileNFVenda) : (itemAntigo ? itemAntigo.docVenda : null),
-        docDecl: fileDecl ? await fileToBase64(fileDecl) : (itemAntigo ? itemAntigo.docDecl : null),
-        docImposto: itemAntigo ? itemAntigo.docImposto : null // Mantém o imposto já anexado
-    };
+        <div id="view-calculadora" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-2 space-y-6">
+                <div class="bg-brand-dark p-6 rounded-lg border border-brand-gray relative shadow-lg">
+                    <div id="editModeIndicator" class="hidden absolute top-0 right-0 bg-brand-orange text-white text-xs px-3 py-1 rounded-bl-lg font-bold">EDITANDO</div>
+                    
+                    <form id="calcForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input type="hidden" id="editId">
+                        <div class="md:col-span-1">
+                            <label class="block text-xs uppercase text-brand-muted mb-1">Empresa</label>
+                            <input type="text" id="nomeEmpresa" class="w-full bg-brand-black border border-brand-gray rounded p-2 text-white">
+                        </div>
+                        <div class="md:col-span-1">
+                            <label class="block text-xs uppercase text-brand-muted mb-1">Regime</label>
+                            <select id="regimeTributario" class="w-full bg-brand-black border border-brand-gray rounded p-2 text-white">
+                                <option value="simples">Simples Nacional</option>
+                                <option value="presumido">Lucro Presumido / Real</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-xs uppercase text-brand-muted mb-1">Descrição do Bem</label>
+                            <input type="text" id="descricao" class="w-full bg-brand-black border border-brand-gray rounded p-2 text-white">
+                        </div>
+                        <div class="p-4 bg-brand-black/30 border border-brand-gray rounded">
+                            <h4 class="text-brand-orange text-xs font-bold mb-3 uppercase font-mono">Entrada (Compra)</h4>
+                            <input type="date" id="dataAquisicao" class="w-full bg-brand-black border border-brand-gray rounded p-2 text-white mb-3 [color-scheme:dark]">
+                            <input type="text" id="valorAquisicao" oninput="mascaraMoeda(this)" placeholder="Valor Compra R$" class="w-full bg-brand-black border border-brand-gray rounded p-2 text-white text-right font-mono">
+                        </div>
+                        <div class="p-4 bg-brand-black/30 border border-brand-gray rounded">
+                            <h4 class="text-brand-orange text-xs font-bold mb-3 uppercase font-mono">Saída (Venda)</h4>
+                            <input type="date" id="dataVenda" class="w-full bg-brand-black border border-brand-gray rounded p-2 text-white mb-3 [color-scheme:dark]">
+                            <input type="text" id="valorVenda" oninput="mascaraMoeda(this)" placeholder="Valor Venda R$" class="w-full bg-brand-black border border-brand-gray rounded p-2 text-white text-right font-mono">
+                        </div>
+                        <div class="md:col-span-2 grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[10px] text-brand-muted mb-1 uppercase">Taxa Depreciação Anual (%)</label>
+                                <select id="tipoDepreciacao" class="w-full bg-brand-black border border-brand-gray rounded p-2 text-white">
+                                    <option value="20">Veículos / Informática (20%)</option>
+                                    <option value="10">Móveis (10%)</option>
+                                    <option value="4">Imóveis (4%)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] text-brand-muted mb-1 uppercase">Despesas Venda</label>
+                                <input type="text" id="despesasVenda" oninput="mascaraMoeda(this)" placeholder="R$ 0,00" class="w-full bg-brand-black border border-brand-gray rounded p-2 text-white text-right font-mono">
+                            </div>
+                        </div>
+                        <div class="md:col-span-2 border-t border-brand-gray pt-4 no-print">
+                            <h3 class="text-xs font-bold text-brand-orange uppercase mb-3">Anexar Documentos</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <div><label class="text-[10px] text-brand-muted">NF Compra</label><input type="file" id="nfCompra" class="w-full text-xs"></div>
+                                <div><label class="text-[10px] text-brand-muted">NF Venda</label><input type="file" id="nfVenda" class="w-full text-xs"></div>
+                                <div><label class="text-[10px] text-brand-muted">Declaração</label><input type="file" id="fileDeclaracao" class="w-full text-xs"></div>
+                            </div>
+                        </div>
+                    </form>
+                    <div class="mt-6 flex justify-end gap-3 no-print">
+                        <button onclick="limparFormulario()" class="px-4 py-2 text-sm text-brand-muted hover:text-white">Cancelar</button>
+                        <button onclick="calcularSimulacao()" id="btnAcao" class="bg-brand-orange hover:bg-brand-orangeHover text-white px-8 py-3 rounded font-black transition-all">CALCULAR AGORA</button>
+                    </div>
+                </div>
 
-    if(!f.empresa || !f.dtAq || !f.dtVenda) { alert("Preencha os campos."); return; }
+                <div id="areaExplicacao" class="hidden bg-brand-dark border border-brand-info/30 rounded-lg p-6 space-y-4 shadow-xl">
+                    <h3 class="text-xl font-bold text-brand-info flex items-center gap-2">Entenda o Cálculo</h3>
+                    <div id="txtPassoAPasso" class="text-sm text-gray-300 leading-relaxed space-y-4"></div>
+                </div>
+            </div>
 
-    const tempo = calcularDiferencaTempo(f.dtAq, f.dtVenda);
-    let depAc = ((f.vlrAq * (f.taxa/100)) / 12) * tempo.totalMeses;
-    if(depAc > f.vlrAq) depAc = f.vlrAq;
-    const vlrCont = f.vlrAq - depAc;
-    const ganho = (f.vlrVenda - f.despesas) - vlrCont;
+            <div class="lg:col-span-1">
+                <div id="cardResultado" class="bg-brand-dark rounded-lg border border-brand-gray sticky top-24 opacity-50 pointer-events-none transition-all duration-300">
+                    <div class="bg-brand-black p-4 border-b border-brand-gray"><h2 class="text-sm font-bold text-white uppercase tracking-widest text-center">Apuração Fiscal</h2></div>
+                    <div class="p-6 space-y-6">
+                        <div class="flex justify-between items-center">
+                            <div><p class="text-[10px] text-brand-muted uppercase">Tempo Uso</p><p id="resTempo" class="text-lg font-bold text-white">-</p></div>
+                            <div class="text-right"><p class="text-[10px] text-brand-muted uppercase font-bold">Depreciação</p><p id="resDepreciacao" class="text-lg font-bold text-brand-danger">-</p></div>
+                        </div>
+                        <div class="bg-brand-black p-4 rounded text-center border border-brand-gray shadow-inner">
+                            <p class="text-[10px] text-brand-muted uppercase mb-1">Valor Contábil Residual</p>
+                            <p id="resValorContabil" class="text-2xl font-black text-white">-</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-brand-muted uppercase mb-1">Ganho de Capital (Lucro)</p>
+                            <p id="resGanho" class="text-3xl font-black text-brand-success">-</p>
+                        </div>
+                        <div class="p-4 bg-brand-orange/10 border-l-4 border-brand-orange rounded">
+                            <p class="text-[10px] text-brand-orange font-black uppercase">Imposto Estimado</p>
+                            <p id="resImposto" class="text-2xl font-black text-white">-</p>
+                            <p id="resDarfInfo" class="text-[10px] text-brand-muted mt-2 italic"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-    let imposto = ganho > 0 ? (f.regime === 'simples' ? ganho * 0.15 : ganho * 0.34) : 0;
-    
-    const novoItem = { 
-        ...f, 
-        id: editId ? parseInt(editId) : Date.now(), 
-        imposto, 
-        tempoStr: `${tempo.anos}a ${tempo.meses}m`, 
-        ganhoCapital: ganho > 0 ? ganho : 0,
-        code: f.regime === 'simples' ? "0507" : "IRPJ/CSLL"
-    };
+        <div id="view-guia" class="hidden space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-brand-dark p-6 rounded-lg border border-brand-gray">
+                    <h3 class="text-brand-orange font-bold text-lg mb-4 border-b border-brand-gray pb-2">Empresa COM IE</h3>
+                    <p class="text-sm text-gray-300 mb-4">Emissão obrigatória de NF-e Modelo 55.</p>
+                    <div class="bg-brand-black p-4 rounded text-xs space-y-2 text-brand-muted">
+                        <p><strong>CFOP:</strong> 5.551 (Estadual) / 6.551 (Interestadual)</p>
+                        <p><strong>CST ICMS:</strong> 041 | <strong>CST PIS/COFINS:</strong> 08</p>
+                        <p class="text-brand-info">Obs: "Não incidência de ICMS RICMS/Art 7º XIV."</p>
+                    </div>
+                </div>
+                <div class="bg-brand-dark p-6 rounded-lg border border-brand-gray">
+                    <h3 class="text-brand-success font-bold text-lg mb-4 border-b border-brand-gray pb-2">Empresa SEM IE</h3>
+                    <p class="text-sm text-gray-300 mb-4 font-bold">Emitir Declaração de Venda em Papel Timbrado.</p>
+                    <button onclick="switchTab('calculadora')" class="w-full bg-brand-gray hover:bg-brand-orange text-white py-2 rounded text-sm font-bold transition-all">Calcular para Gerar Dados</button>
+                </div>
+            </div>
+        </div>
 
-    salvar(novoItem);
-    alert(editId ? "Registro Atualizado!" : "Cálculo Salvo!");
-    limparFormulario();
-    switchTab('historico');
-}
+        <div id="view-historico" class="hidden">
+            <div class="bg-brand-dark rounded-lg border border-brand-gray overflow-hidden shadow-2xl">
+                <div class="p-4 border-b border-brand-gray flex justify-between items-center bg-brand-black/50 no-print">
+                    <h2 class="font-bold text-white uppercase text-sm">Registros Salvos</h2>
+                    <button onclick="exportarDados()" class="text-[10px] bg-brand-gray px-4 py-2 rounded text-white font-bold">BAIXAR BACKUP (JSON)</button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left">
+                        <thead class="bg-brand-black text-brand-muted uppercase text-[10px]">
+                            <tr>
+                                <th class="px-4 py-4">Empresa/Bem</th>
+                                <th class="px-4 py-4 text-right">Compra/Data</th>
+                                <th class="px-4 py-4 text-right">Venda/Data</th>
+                                <th class="px-4 py-4 text-right">Ganho/Lucro</th>
+                                <th class="px-4 py-4 text-right">Imposto/Anexos</th>
+                                <th class="px-4 py-4 text-center">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelaHistorico" class="divide-y divide-brand-gray/30"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let historico = JSON.parse(localStorage.getItem('fiscoCap_v3')) || [];
+        const valorParaReal = (v) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        const parseCurrency = (s) => !s ? 0 : parseFloat(s.replace(/[^\d,]/g, '').replace(',', '.'));
+
+        function mascaraMoeda(i) {
+            let v = i.value.replace(/\D/g, "");
+            i.value = (parseFloat(v)/100 || 0).toLocaleString("pt-BR", {style:"currency", currency:"BRL"});
+        }
+
+        function switchTab(t) {
+            ['calculadora', 'guia', 'historico'].forEach(v => document.getElementById(`view-${v}`).classList.add('hidden'));
+            document.getElementById(`view-${t}`).classList.remove('hidden');
+            document.querySelectorAll('.tabs-nav button').forEach(b => b.className = "pb-3 text-brand-muted");
+            document.getElementById(`tab-${t}`).className = "pb-3 tab-active";
+            if(t === 'historico') renderHistorico();
+        }
+
+        function calcularTempo(i, f) {
+            let d1 = new Date(i), d2 = new Date(f);
+            let anos = d2.getFullYear() - d1.getFullYear();
+            let meses = d2.getMonth() - d1.getMonth();
+            if (meses < 0) { anos--; meses += 12; }
+            return { anos, meses, totalMeses: (anos * 12) + meses };
+        }
+
+        async function fileToBase64(f) {
+            return new Promise((res) => {
+                if (!f) return res(null);
+                const r = new FileReader();
+                r.readAsDataURL(f);
+                r.onload = () => res(r.result);
+            });
+        }
+
+        async function calcularSimulacao() {
+            const eid = document.getElementById('editId').value;
+            const ant = eid ? historico.find(i => i.id == eid) : null;
+            
+            const f = {
+                empresa: document.getElementById('nomeEmpresa').value,
+                regime: document.getElementById('regimeTributario').value,
+                bem: document.getElementById('descricao').value,
+                vlrAq: parseCurrency(document.getElementById('valorAquisicao').value),
+                vlrVenda: parseCurrency(document.getElementById('valorVenda').value),
+                despesas: parseCurrency(document.getElementById('despesasVenda').value),
+                dtAq: document.getElementById('dataAquisicao').value,
+                dtVenda: document.getElementById('dataVenda').value,
+                taxa: parseFloat(document.getElementById('tipoDepreciacao').value)
+            };
+
+            if(!f.empresa || !f.dtAq || !f.dtVenda || f.vlrAq <= 0) { alert("Preencha os campos obrigatórios."); return; }
+
+            const tempo = calcularTempo(f.dtAq, f.dtVenda);
+            let depAc = ((f.vlrAq * (f.taxa/100)) / 12) * tempo.totalMeses;
+            if(depAc > f.vlrAq) depAc = f.vlrAq;
+            const vlrCont = f.vlrAq - depAc;
+            const ganho = (f.vlrVenda - f.despesas) - vlrCont;
+            const imposto = ganho > 0 ? (f.regime === 'simples' ? ganho * 0.15 : ganho * 0.34) : 0;
+            const venc = new Date(new Date(f.dtVenda).getFullYear(), new Date(f.dtVenda).getMonth() + 2, 0);
+
+            // Interface
+            document.getElementById('resTempo').innerText = `${tempo.anos} anos e ${tempo.meses} meses`;
+            document.getElementById('resDepreciacao').innerText = valorParaReal(depAc);
+            document.getElementById('resValorContabil').innerText = valorParaReal(vlrCont);
+            document.getElementById('resGanho').innerText = valorParaReal(ganho > 0 ? ganho : 0);
+            document.getElementById('resImposto').innerText = valorParaReal(imposto);
+            document.getElementById('resDarfInfo').innerText = `Cod: ${f.regime==='simples'?'0507':'IRPJ/CSLL'} | Venc: ${venc.toLocaleDateString('pt-BR')}`;
+            document.getElementById('cardResultado').classList.replace('opacity-50', 'opacity-100');
+            document.getElementById('cardResultado').classList.remove('pointer-events-none');
+
+            // Explicação
+            document.getElementById('areaExplicacao').classList.remove('hidden');
+            document.getElementById('txtPassoAPasso').innerHTML = `
+                <p><strong>1. Depreciação:</strong> Para a Receita, seu bem perdeu <strong>${valorParaReal(depAc)}</strong> de valor em ${tempo.totalMeses} meses.</p>
+                <p><strong>2. Valor Contábil Residual:</strong> É o que o fisco estima que o bem vale hoje: <strong>${valorParaReal(vlrCont)}</strong>.</p>
+                <p><strong>3. Ganho de Capital:</strong> Como você vendeu por mais do que o valor residual, houve um ganho tributável de <strong>${valorParaReal(ganho > 0 ? ganho : 0)}</strong>.</p>
+            `;
+
+            // Processar Arquivos
+            const novoItem = {
+                ...f,
+                id: eid ? parseInt(eid) : Date.now(),
+                ganhoCapital: ganho > 0 ? ganho : 0, imposto,
+                tempoStr: `${tempo.anos}a ${tempo.meses}m`,
+                vencStr: venc.toLocaleDateString('pt-BR'),
+                code: f.regime === 'simples' ? "0507" : "IRPJ/CSLL",
+                docC: document.getElementById('nfCompra').files[0] ? await fileToBase64(document.getElementById('nfCompra').files[0]) : (ant?ant.docC:null),
+                docV: document.getElementById('nfVenda').files[0] ? await fileToBase64(document.getElementById('nfVenda').files[0]) : (ant?ant.docV:null),
+                docD: document.getElementById('fileDeclaracao').files[0] ? await fileToBase64(document.getElementById('fileDeclaracao').files[0]) : (ant?ant.docD:null),
+                docImp: ant ? ant.docImp : null
+            };
+
+            const idx = historico.findIndex(i => i.id == novoItem.id);
+            if(idx >= 0) historico[idx] = novoItem; else historico.push(novoItem);
+            localStorage.setItem('fiscoCap_v3', JSON.stringify(historico));
+            
+            if(eid) { alert("Alterado!"); limparFormulario(); switchTab('historico'); }
+        }
+
+        function renderHistorico() {
+            const body = document.getElementById('tabelaHistorico');
+            body.innerHTML = historico.map(i => `
+                <tr class="hover:bg-brand-dark/50 border-b border-brand-gray/50 align-top">
+                    <td class="px-4 py-4"><div class="font-bold text-white">${i.empresa}</div><div class="text-[10px] text-brand-muted uppercase">${i.bem}</div></td>
+                    <td class="px-4 py-4 text-right">
+                        <div class="font-bold text-white">${valorParaReal(i.vlrAq)}</div>
+                        <div class="text-[10px] text-brand-muted">${i.dtAq.split('-').reverse().join('/')}</div>
+                        ${i.docC?`<a href="${i.docC}" download class="text-[9px] text-brand-orange block mt-1 underline">📂 NF COMPRA</a>`:''}
+                    </td>
+                    <td class="px-4 py-4 text-right">
+                        <div class="font-bold text-white">${valorParaReal(i.vlrVenda)}</div>
+                        <div class="text-[10px] text-brand-muted">${i.dtVenda.split('-').reverse().join('/')}</div>
+                        ${i.docV?`<a href="${i.docV}" download class="text-[9px] text-brand-orange block mt-1 underline">📂 NF VENDA</a>`:''}
+                    </td>
+                    <td class="px-4 py-4 text-right font-bold text-brand-success">${valorParaReal(i.ganhoCapital)}</td>
+                    <td class="px-4 py-4 text-right">
+                        <div class="font-bold text-brand-danger">${valorParaReal(i.imposto)}</div>
+                        <div class="text-[9px] text-brand-muted uppercase">Cod: ${i.code} | Venc: ${i.vencStr}</div>
+                        <div class="mt-2 space-y-1">
+                            <input type="file" id="upImp_${i.id}" class="hidden" onchange="anexarGuia(${i.id})">
+                            <button onclick="document.getElementById('upImp_${i.id}').click()" class="text-[9px] border px-2 py-1 rounded hover:bg-brand-orange transition-colors">＋ Anexar Guia</button>
+                            ${i.docImp?`<br><a href="${i.docImp}" download class="text-[10px] text-green-400 font-bold underline italic">✅ Guia Anexada</a>`:''}
+                        </div>
+                    </td>
+                    <td class="px-4 py-4 text-center">
+                        <div class="flex flex-col gap-2">
+                            <button onclick="carregarEdicao(${i.id})" class="text-brand-info">✎</button>
+                            <button onclick="excluir(${i.id})" class="text-brand-danger">✕</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function anexarGuia(id) {
+            const f = document.getElementById(`upImp_${id}`).files[0];
+            if(f) {
+                const b64 = await fileToBase64(f);
+                const idx = historico.findIndex(i => i.id == id);
+                historico[idx].docImp = b64;
+                localStorage.setItem('fiscoCap_v3', JSON.stringify(historico));
+                renderHistorico();
+                alert("Guia Anexada!");
+            }
+        }
+
+        function carregarEdicao(id) {
+            const item = historico.find(i => i.id == id);
+            document.getElementById('editId').value = item.id;
+            document.getElementById('nomeEmpresa').value = item.empresa;
+            document.getElementById('descricao').value = item.bem;
+            document.getElementById('dataAquisicao').value = item.dtAq;
+            document.getElementById('dataVenda').value = item.dtVenda;
+            document.getElementById('regimeTributario').value = item.regime;
+            document.getElementById('tipoDepreciacao').value = item.taxa;
+            
+            const vA = document.getElementById('valorAquisicao'); vA.value=(item.vlrAq*100).toFixed(0); mascaraMoeda(vA);
+            const vV = document.getElementById('valorVenda'); vV.value=(item.vlrVenda*100).toFixed(0); mascaraMoeda(vV);
+            const vD = document.getElementById('despesasVenda'); vD.value=(item.despesas*100).toFixed(0); mascaraMoeda(vD);
+
+            const btn = document.getElementById('btnAcao');
+            btn.innerText = "SALVAR ALTERAÇÕES"; btn.classList.replace('bg-brand-orange', 'bg-brand-success');
+            document.getElementById('editModeIndicator').classList.remove('hidden');
+            switchTab('calculadora');
+            window.scrollTo(0,0);
+        }
+
+        function limparFormulario() {
+            document.getElementById('calcForm').reset();
+            document.getElementById('editId').value = "";
+            document.getElementById('editModeIndicator').classList.add('hidden');
+            document.getElementById('cardResultado').classList.add('opacity-50', 'pointer-events-none');
+            const btn = document.getElementById('btnAcao');
+            btn.innerText = "CALCULAR AGORA"; btn.classList.replace('bg-brand-success', 'bg-brand-orange');
+        }
+
+        function excluir(id) { if(confirm("Excluir?")) { historico = historico.filter(i => i.id != id); localStorage.setItem('fiscoCap_v3', JSON.stringify(historico)); renderHistorico(); } }
+        function exportarDados() { const b = new Blob([JSON.stringify(historico)], {type:'application/json'}); const a = document.createElement('a'); a.href=URL.createObjectURL(b); a.download='fisco_backup.json'; a.click(); }
+    </script>
+</body>
+</html>

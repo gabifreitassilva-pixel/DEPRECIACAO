@@ -3,7 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FISCO CAPITAL - Gestão Fiscal v8.0</title>
+    <meta name="theme-color" content="#1a1a1a">
+    <title>FISCO CAPITAL - PWA</title>
+    
+    <!-- Link para o Manifesto (Transforma em App) -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -11,16 +17,9 @@
                 extend: {
                     colors: {
                         brand: {
-                            black: '#0f0f0f',
-                            dark: '#1a1a1a',
-                            gray: '#2a2a2a',
-                            orange: '#f97316',
-                            orangeHover: '#ea580c',
-                            text: '#f3f4f6',
-                            muted: '#9ca3af',
-                            success: '#10b981',
-                            danger: '#ef4444',
-                            info: '#3b82f6'
+                            black: '#0f0f0f', dark: '#1a1a1a', gray: '#2a2a2a',
+                            orange: '#f97316', orangeHover: '#ea580c', text: '#f3f4f6',
+                            muted: '#9ca3af', success: '#10b981', danger: '#ef4444', info: '#3b82f6'
                         }
                     }
                 }
@@ -38,7 +37,6 @@
         .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* Print Styles */
         @media print {
             body { background: white !important; color: black !important; }
             header, .tabs-nav, #view-guia, #view-historico, .no-print { display: none !important; }
@@ -61,9 +59,10 @@
                 </div>
                 <div>
                     <h1 class="text-2xl font-bold tracking-tighter leading-none text-white">FISCO <span class="text-brand-orange">CAPITAL</span></h1>
-                    <span class="text-[10px] text-brand-muted uppercase tracking-widest">Gestão Inteligente de Ativos</span>
+                    <span class="text-[10px] text-brand-muted uppercase tracking-widest">Sistema Local (PWA)</span>
                 </div>
             </div>
+            <div id="pwaStatus" class="text-[10px] text-green-500 hidden">App Instalado</div>
         </div>
     </header>
 
@@ -72,8 +71,8 @@
         <!-- Tabs -->
         <div class="tabs-nav flex gap-6 mb-8 border-b border-brand-gray text-sm font-medium overflow-x-auto">
             <button onclick="switchTab('calculadora')" id="tab-calculadora" class="pb-3 tab-active hover:text-brand-orange transition-colors flex items-center gap-2">Simulador & Cálculo</button>
-            <button onclick="switchTab('guia')" id="tab-guia" class="pb-3 text-brand-muted hover:text-brand-orange transition-colors flex items-center gap-2">Guia Fiscal & Dúvidas</button>
-            <button onclick="switchTab('historico')" id="tab-historico" class="pb-3 text-brand-muted hover:text-brand-orange transition-colors flex items-center gap-2">Histórico de Vendas</button>
+            <button onclick="switchTab('guia')" id="tab-guia" class="pb-3 text-brand-muted hover:text-brand-orange transition-colors flex items-center gap-2">Guia Fiscal</button>
+            <button onclick="switchTab('historico')" id="tab-historico" class="pb-3 text-brand-muted hover:text-brand-orange transition-colors flex items-center gap-2">Histórico & Backup</button>
         </div>
 
         <!-- VISÃO 1: CALCULADORA -->
@@ -84,7 +83,7 @@
                     
                     <div class="flex justify-between items-center mb-4">
                         <h2 class="text-lg font-semibold text-brand-orange flex items-center gap-2">Dados da Operação</h2>
-                        <button onclick="window.print()" class="no-print text-xs border border-brand-gray text-brand-muted hover:text-white px-3 py-1 rounded transition-colors">Imprimir Simulação</button>
+                        <button onclick="window.print()" class="no-print text-xs border border-brand-gray text-brand-muted hover:text-white px-3 py-1 rounded transition-colors">Imprimir</button>
                     </div>
                     
                     <form id="calcForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -108,7 +107,6 @@
                             <input type="text" id="descricao" class="w-full bg-brand-black border border-brand-gray rounded p-2 text-white focus:border-brand-orange focus:outline-none">
                         </div>
 
-                        <!-- Valores -->
                         <div class="p-3 border border-brand-gray rounded bg-brand-black/30 md:col-span-1">
                             <h4 class="text-brand-orange text-xs font-bold mb-2 uppercase">Entrada (Compra)</h4>
                             <div class="space-y-2">
@@ -125,7 +123,6 @@
                             </div>
                         </div>
 
-                        <!-- Taxas -->
                         <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 bg-brand-black/20 p-3 rounded border border-brand-gray">
                             <div>
                                 <label class="block text-xs text-brand-muted mb-1">Depreciação Anual</label>
@@ -143,7 +140,6 @@
                             </div>
                         </div>
 
-                        <!-- Arquivos -->
                         <div class="md:col-span-2 border-t border-brand-gray pt-4 no-print">
                             <h3 class="text-sm font-semibold text-white mb-3">Anexar Documentos</h3>
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -161,7 +157,6 @@
                                     <label class="block text-[10px] text-brand-muted uppercase mb-1">3. Declaração</label>
                                     <input type="file" id="fileDeclaracao" accept=".pdf,.jpg,.png" class="text-[10px] text-brand-muted w-full">
                                     <p id="labelDeclaracao" class="text-[9px] text-brand-success mt-1 hidden"></p>
-                                    <span title="Anexar declaração de não incidência assinada" class="absolute top-1 right-2 text-brand-muted cursor-help">?</span>
                                 </div>
                             </div>
                         </div>
@@ -173,16 +168,12 @@
                     </div>
                 </div>
 
-                <!-- ÁREA DIDÁTICA -->
                 <div id="areaExplicacao" class="hidden animate-fade-in mt-6 bg-brand-info/10 border border-brand-info/30 rounded-lg p-5">
-                    <h3 class="text-lg font-bold text-brand-info mb-3 flex items-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                        Entenda o Cálculo (Didático)
-                    </h3>
+                    <h3 class="text-lg font-bold text-brand-info mb-3 flex items-center gap-2">Entenda o Cálculo</h3>
                     <div class="text-sm space-y-3 text-gray-300 leading-relaxed">
                         <p id="txtExp1"></p>
                         <div class="bg-brand-black/50 p-3 rounded border-l-4 border-brand-info">
-                            <p class="font-bold text-white mb-1">O "Pulo do Gato" da Receita:</p>
+                            <p class="font-bold text-white mb-1">Análise Fiscal:</p>
                             <p id="txtExp2"></p>
                         </div>
                         <p id="txtExp3" class="text-xs text-brand-muted italic mt-2"></p>
@@ -190,7 +181,7 @@
                 </div>
             </div>
 
-            <!-- Coluna Direita: Resultados -->
+            <!-- Resultados -->
             <div class="lg:col-span-1">
                 <div id="cardResultado" class="bg-brand-dark p-0 rounded-lg border border-brand-gray h-full opacity-50 pointer-events-none transition-all duration-300 flex flex-col sticky top-24">
                     <div class="bg-brand-black p-4 border-b border-brand-gray">
@@ -226,48 +217,28 @@
             </div>
         </div>
 
-        <!-- VISÃO 2: GUIA FISCAL -->
+        <!-- VISÃO 2: GUIA -->
         <div id="view-guia" class="hidden animate-fade-in">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="space-y-6">
-                    <!-- ALERTA SOBRE IE -->
                     <div class="bg-brand-info/10 border border-brand-info/30 p-6 rounded-lg">
-                        <div class="flex items-start gap-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-brand-info mt-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                            <div>
-                                <h3 class="text-brand-info font-bold text-lg mb-2">Dúvida Comum: Tenho IE, posso emitir Declaração?</h3>
-                                <p class="text-sm text-gray-200 leading-relaxed mb-3">
-                                    <strong class="text-white">NÃO.</strong> Se a sua empresa possui Inscrição Estadual (IE), mesmo sendo prestadora de serviços, você é <strong class="text-white">OBRIGADO</strong> a emitir a Nota Fiscal Eletrônica (NF-e Modelo 55) na venda de Ativo Imobilizado.
-                                </p>
-                                <p class="text-xs text-brand-muted">
-                                    A "Declaração de Não Incidência" serve geralmente para empresas <strong class="text-white">sem IE</strong> (Prestadores puros isentos no estado) ou como documento auxiliar para o transporte.
-                                </p>
-                            </div>
-                        </div>
+                        <h3 class="text-brand-info font-bold text-lg mb-2">Tem Inscrição Estadual (IE)?</h3>
+                        <p class="text-sm text-gray-200 mb-3">Se sim, você é <strong>OBRIGADO</strong> a emitir NF-e Modelo 55.</p>
+                        <p class="text-xs text-brand-muted">A declaração é apenas para isentos de IE.</p>
                     </div>
-
                     <div class="bg-brand-dark p-6 rounded-lg border border-brand-gray">
                         <h3 class="text-brand-orange font-bold text-lg mb-3">Dados para NF-e</h3>
                         <ul class="text-sm text-gray-300 space-y-3">
                             <li><strong>CFOP:</strong> 5.551 (Estadual) / 6.551 (Interestadual)</li>
-                            <li><strong>CST ICMS:</strong> 041 (Não Tributado)</li>
-                            <li><strong>CST PIS/COFINS:</strong> 08 (Sem Incidência)</li>
+                            <li><strong>CST ICMS:</strong> 041</li>
+                            <li><strong>CST PIS/COFINS:</strong> 08</li>
                         </ul>
                     </div>
                 </div>
-
                 <div class="space-y-6">
-                     <div class="bg-brand-dark p-6 rounded-lg border border-brand-gray">
-                        <h3 class="text-brand-orange font-bold text-lg mb-3">Declaração (Para quem não tem IE)</h3>
-                        <p class="text-sm text-gray-400 mb-4">Se sua empresa NÃO possui Inscrição Estadual, use este modelo.</p>
-                        <button onclick="abrirModeloDeclaracao()" class="w-full bg-brand-gray hover:bg-brand-orange text-white py-3 rounded font-bold transition-colors">Gerar Modelo de Declaração</button>
-                    </div>
-
                     <div class="bg-brand-dark p-6 rounded-lg border border-brand-gray">
-                        <h3 class="text-brand-orange font-bold text-lg mb-3">Pagamento (DARF)</h3>
-                        <p class="text-sm text-gray-300 mb-2"><strong>Simples Nacional:</strong> Código 0507 (15%).</p>
-                        <p class="text-sm text-gray-300 mb-2"><strong>Lucro Presumido:</strong> Soma-se à base (IRPJ/CSLL).</p>
-                        <p class="text-xs text-brand-muted mt-3">Vencimento: Último dia útil do mês seguinte.</p>
+                        <h3 class="text-brand-orange font-bold text-lg mb-3">Declaração (Sem IE)</h3>
+                        <button onclick="abrirModeloDeclaracao()" class="w-full bg-brand-gray hover:bg-brand-orange text-white py-3 rounded font-bold transition-colors">Gerar Modelo</button>
                     </div>
                 </div>
             </div>
@@ -277,8 +248,15 @@
         <div id="view-historico" class="hidden animate-fade-in">
             <div class="bg-brand-dark rounded-lg border border-brand-gray overflow-hidden">
                 <div class="p-4 border-b border-brand-gray flex justify-between items-center bg-brand-black/50">
-                    <h2 class="text-lg font-semibold text-white">Vendas Registradas</h2>
-                    <input type="text" placeholder="Buscar..." id="buscaHistorico" onkeyup="renderHistorico()" class="bg-brand-black text-xs text-white border border-brand-gray rounded px-3 py-1.5 focus:border-brand-orange outline-none">
+                    <div>
+                        <h2 class="text-lg font-semibold text-white">Vendas (Gravadas no Navegador)</h2>
+                        <p class="text-xs text-brand-muted">Os dados ficam salvos neste computador</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="exportarDados()" class="text-xs bg-brand-info/20 text-brand-info border border-brand-info px-3 py-1 rounded hover:bg-brand-info hover:text-white transition-colors">↓ Baixar Backup</button>
+                        <button onclick="document.getElementById('fileInputImport').click()" class="text-xs bg-brand-success/20 text-brand-success border border-brand-success px-3 py-1 rounded hover:bg-brand-success hover:text-white transition-colors">↑ Restaurar Backup</button>
+                        <input type="file" id="fileInputImport" class="hidden" accept=".json" onchange="importarDados(this)">
+                    </div>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm text-left">
@@ -287,7 +265,7 @@
                                 <th class="px-4 py-3 border-b border-brand-gray">Empresa</th>
                                 <th class="px-4 py-3 border-b border-brand-gray text-right">Compra</th>
                                 <th class="px-4 py-3 border-b border-brand-gray text-right">Venda</th>
-                                <th class="px-4 py-3 border-b border-brand-gray text-right text-brand-orange">Ganho</th>
+                                <th class="px-4 py-3 border-b border-brand-gray text-right text-brand-orange">Lucro</th>
                                 <th class="px-4 py-3 border-b border-brand-gray text-right text-red-400">Imposto</th>
                                 <th class="px-4 py-3 border-b border-brand-gray text-center">Docs</th>
                                 <th class="px-4 py-3 border-b border-brand-gray text-center">Ações</th>
@@ -298,22 +276,16 @@
                 </div>
             </div>
         </div>
-
     </main>
 
-    <!-- MODAL DECLARAÇÃO -->
+    <!-- Modais -->
     <div id="modalDeclaracao" class="fixed inset-0 bg-black/90 hidden items-center justify-center z-[70] p-4 no-print">
         <div class="bg-white text-black p-8 rounded-lg max-w-2xl w-full shadow-2xl overflow-y-auto max-h-[90vh]">
             <h2 class="text-xl font-bold mb-4 border-b pb-2">Declaração de Não Incidência</h2>
             <div class="font-serif text-sm space-y-4 leading-relaxed bg-gray-50 p-6 border border-gray-300">
-                <p class="text-center font-bold">DECLARAÇÃO DE VENDA DE ATIVO IMOBILIZADO</p>
-                <p>A empresa <strong>[NOME DA EMPRESA]</strong>, CNPJ <strong>[CNPJ]</strong>, declara que o bem abaixo:</p>
-                <ul class="list-disc ml-8">
-                    <li>Descrição: <strong>[DESCRIÇÃO DO BEM]</strong></li>
-                    <li>Valor: <strong>R$ [VALOR]</strong></li>
-                </ul>
-                <p>Faz parte do Ativo Imobilizado (+12 meses), não sendo mercadoria de revenda. Operação com NÃO INCIDÊNCIA DE ICMS.</p>
-                <p class="mt-8 text-center">____________________________________<br>Assinatura</p>
+                <p class="text-center font-bold">DECLARAÇÃO</p>
+                <p>A empresa <strong>[NOME]</strong> declara a venda do ativo imobilizado abaixo com não incidência de ICMS.</p>
+                <p class="mt-8 text-center">___________________<br>Assinatura</p>
             </div>
             <div class="mt-6 flex justify-end gap-3">
                 <button onclick="document.getElementById('modalDeclaracao').classList.add('hidden')" class="px-4 py-2 bg-gray-200 rounded">Fechar</button>
@@ -321,20 +293,29 @@
             </div>
         </div>
     </div>
-
-    <!-- MODAL ARQUIVO -->
+    
     <div id="modalArquivo" class="fixed inset-0 bg-black/90 hidden items-center justify-center z-[60] no-print">
         <div class="bg-brand-dark p-6 rounded-lg max-w-md w-full border border-brand-gray">
-            <h3 class="text-lg font-bold text-white mb-2">Arquivo Anexado</h3>
+            <h3 class="text-lg font-bold text-white mb-2">Arquivo</h3>
             <p id="modalFileName" class="text-brand-orange mb-4 text-center border p-2 border-dashed border-brand-gray rounded font-mono break-all"></p>
             <button onclick="document.getElementById('modalArquivo').classList.add('hidden')" class="bg-brand-gray w-full py-2 rounded text-white">Fechar</button>
         </div>
     </div>
 
+    <!-- Script PWA e Lógica -->
     <script>
-        // Dados
+        // Registrar Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker registrado!', reg))
+                    .catch(err => console.log('Falha ao registrar SW:', err));
+            });
+        }
+
+        // Lógica da Aplicação
         let currentSimulation = null;
-        let historico = JSON.parse(localStorage.getItem('fiscoCapitalDB_v8')) || [];
+        let historico = JSON.parse(localStorage.getItem('fiscoCapitalDB_v11')) || [];
 
         // Utils
         const valorParaReal = (val) => val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -346,7 +327,6 @@
             input.value = (parseFloat(val)/100).toLocaleString("pt-BR", {style:"currency", currency:"BRL"});
         };
 
-        // Navegação
         function switchTab(tab) {
             ['calculadora', 'guia', 'historico'].forEach(t => document.getElementById(`view-${t}`).classList.add('hidden'));
             document.getElementById(`view-${tab}`).classList.remove('hidden');
@@ -365,7 +345,30 @@
             document.getElementById('modalDeclaracao').classList.add('flex');
         }
 
-        // Core Calculation
+        function exportarDados() {
+            const dataStr = JSON.stringify(historico);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', 'fisco_backup.json');
+            linkElement.click();
+        }
+
+        function importarDados(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    historico = JSON.parse(e.target.result);
+                    localStorage.setItem('fiscoCapitalDB_v11', JSON.stringify(historico));
+                    alert('Dados restaurados!');
+                    renderHistorico();
+                } catch (err) { alert('Erro no arquivo.'); }
+            };
+            reader.readAsText(file);
+        }
+
         function calcularSimulacao() {
             const editId = document.getElementById('editId').value;
             const empresa = document.getElementById('nomeEmpresa').value;
@@ -376,16 +379,15 @@
             const dataVendaVal = document.getElementById('dataVenda').value;
             const dataAq = new Date(dataAqVal);
             const dataVenda = new Date(dataVendaVal);
-
+            
             let taxa = document.getElementById('tipoDepreciacao').value;
             if(taxa === 'custom') taxa = parseFloat(document.getElementById('taxaDepreciacaoCustom').value);
             else taxa = parseFloat(taxa);
 
             if(!empresa || !valorAq || !valorVenda || isNaN(dataAq) || isNaN(dataVenda)) {
-                alert("Preencha todos os campos obrigatórios."); return;
+                alert("Preencha todos os campos."); return;
             }
 
-            // Cálculo Lógico
             const diffTime = Math.abs(dataVenda - dataAq);
             const totalDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
             const anosFracionados = totalDays / 365.25;
@@ -394,7 +396,7 @@
             const valorContabil = valorAq - depreciacao;
             const ganhoCapital = (valorVenda - despesas) - valorContabil;
 
-            // Arquivos (Preservação)
+            // Arquivos
             const getFile = (id) => document.getElementById(id).files[0]?.name;
             let files = { compra: getFile('nfCompra'), venda: getFile('nfVenda'), decl: getFile('fileDeclaracao') };
             
@@ -407,20 +409,17 @@
                 }
             }
 
-            // Explicação Didática
-            const areaExp = document.getElementById('areaExplicacao');
-            areaExp.classList.remove('hidden');
-            document.getElementById('txtExp1').innerHTML = `1. Compra: <strong>${valorParaReal(valorAq)}</strong>. <br>2. Depreciação (${anosFracionados.toFixed(1)} anos): <strong class="text-red-300">-${valorParaReal(depreciacao)}</strong>.<br>3. Valor Contábil (Hoje): <strong class="text-white">${valorParaReal(valorContabil)}</strong>.`;
+            document.getElementById('areaExplicacao').classList.remove('hidden');
+            document.getElementById('txtExp1').innerHTML = `1. Compra: <strong>${valorParaReal(valorAq)}</strong>. <br>2. Depreciação: <strong class="text-red-300">-${valorParaReal(depreciacao)}</strong>.<br>3. Contábil: <strong class="text-white">${valorParaReal(valorContabil)}</strong>.`;
             
             if(ganhoCapital > 0) {
-                document.getElementById('txtExp2').innerHTML = `Venda: <strong class="text-green-300">${valorParaReal(valorVenda)}</strong>. Como é MAIOR que o valor contábil (${valorParaReal(valorContabil)}), houve LUCRO de <strong>${valorParaReal(ganhoCapital)}</strong>. O imposto incide aqui.`;
-                document.getElementById('txtExp3').innerText = `Dica: Se a venda fosse igual ou menor que ${valorParaReal(valorContabil)}, o imposto seria zero.`;
+                document.getElementById('txtExp2').innerHTML = `Venda: <strong class="text-green-300">${valorParaReal(valorVenda)}</strong>. Lucro de <strong>${valorParaReal(ganhoCapital)}</strong>.`;
+                document.getElementById('txtExp3').innerText = `Imposto incide sobre o lucro.`;
             } else {
-                document.getElementById('txtExp2').innerHTML = `Venda: <strong class="text-gray-300">${valorParaReal(valorVenda)}</strong>. Como é MENOR que o valor contábil, NÃO HÁ Ganho de Capital.`;
-                document.getElementById('txtExp3').innerText = "Resultado: Prejuízo contábil ou empate. Sem DARF a pagar.";
+                document.getElementById('txtExp2').innerHTML = `Venda sem ganho de capital.`;
+                document.getElementById('txtExp3').innerText = "Imposto Zero.";
             }
 
-            // Obj
             currentSimulation = {
                 id: editId ? parseInt(editId) : Date.now(),
                 empresa, descricao: document.getElementById('descricao').value,
@@ -431,11 +430,9 @@
                 files: files
             };
 
-            // Resultado UI
             document.getElementById('resTempo').innerText = `${anosFracionados.toFixed(1)} anos`;
             document.getElementById('resDepreciacao').innerText = valorParaReal(depreciacao);
             document.getElementById('resValorContabil').innerText = valorParaReal(valorContabil);
-            
             const elGanho = document.getElementById('resGanho');
             elGanho.innerText = valorParaReal(ganhoCapital);
             elGanho.className = ganhoCapital > 0 ? "text-2xl font-black text-brand-success block" : "text-2xl font-black text-brand-muted block";
@@ -459,7 +456,7 @@
             if(idx !== -1) historico[idx] = currentSimulation;
             else historico.push(currentSimulation);
             
-            localStorage.setItem('fiscoCapitalDB_v8', JSON.stringify(historico));
+            localStorage.setItem('fiscoCapitalDB_v11', JSON.stringify(historico));
             if(document.getElementById('editId').value) {
                 alert("Alterações salvas!");
                 limparFormulario();
@@ -473,12 +470,11 @@
             historico.forEach(item => {
                 const f = item.files || {};
                 const badges = [
-                    f.compra ? `<span onclick="verArquivo('${f.compra}')" class="cursor-pointer text-[10px] text-green-400 border border-green-800 px-1 rounded mx-0.5" title="NF Compra">CP</span>` : '',
-                    f.venda ? `<span onclick="verArquivo('${f.venda}')" class="cursor-pointer text-[10px] text-green-400 border border-green-800 px-1 rounded mx-0.5" title="NF Venda">VD</span>` : '',
-                    f.decl ? `<span onclick="verArquivo('${f.decl}')" class="cursor-pointer text-[10px] text-blue-400 border border-blue-800 px-1 rounded mx-0.5" title="Declaração">DC</span>` : ''
+                    f.compra ? `<span onclick="verArquivo('${f.compra}')" class="cursor-pointer text-[10px] text-green-400 border border-green-800 px-1 rounded mx-0.5">CP</span>` : '',
+                    f.venda ? `<span onclick="verArquivo('${f.venda}')" class="cursor-pointer text-[10px] text-green-400 border border-green-800 px-1 rounded mx-0.5">VD</span>` : '',
+                    f.decl ? `<span onclick="verArquivo('${f.decl}')" class="cursor-pointer text-[10px] text-blue-400 border border-blue-800 px-1 rounded mx-0.5">DC</span>` : ''
                 ].join('');
                 
-                // Calculo imposto historico
                 let impostoEst = 0;
                 if(item.ganhoCapital > 0) {
                     impostoEst = item.regime === 'simples' ? item.ganhoCapital * 0.15 : item.ganhoCapital * 0.24;
@@ -516,13 +512,11 @@
             setVal('valorVenda', item.valorVenda);
             setVal('despesasVenda', item.despesas);
 
-            // Depreciação custom logic
             const sel = document.getElementById('tipoDepreciacao');
             const opts = Array.from(sel.options).map(o=>o.value);
             if(opts.includes(String(item.taxa))) { sel.value = item.taxa; toggleDepreciacaoCustom(item.taxa); }
             else { sel.value = 'custom'; toggleDepreciacaoCustom('custom'); document.getElementById('taxaDepreciacaoCustom').value = item.taxa; }
 
-            // Arquivos labels
             const f = item.files || {};
             if(f.compra) { document.getElementById('labelCompra').innerText = f.compra; document.getElementById('labelCompra').classList.remove('hidden'); }
             if(f.venda) { document.getElementById('labelVenda').innerText = f.venda; document.getElementById('labelVenda').classList.remove('hidden'); }
@@ -530,15 +524,14 @@
 
             document.getElementById('editModeIndicator').classList.remove('hidden');
             document.getElementById('btnAcao').innerText = "Salvar Alterações";
-            document.getElementById('btnAcao').classList.remove('bg-brand-orange');
-            document.getElementById('btnAcao').classList.add('bg-brand-success');
+            document.getElementById('btnAcao').classList.replace('bg-brand-orange', 'bg-brand-success');
             switchTab('calculadora');
         }
 
         function excluirItem(id) {
             if(confirm("Excluir?")) {
                 historico = historico.filter(i => i.id !== id);
-                localStorage.setItem('fiscoCapitalDB_v8', JSON.stringify(historico));
+                localStorage.setItem('fiscoCapitalDB_v11', JSON.stringify(historico));
                 renderHistorico();
             }
         }
@@ -550,8 +543,7 @@
             document.getElementById('areaExplicacao').classList.add('hidden');
             document.getElementById('cardResultado').classList.add('opacity-50', 'pointer-events-none');
             document.getElementById('btnAcao').innerText = "Calcular";
-            document.getElementById('btnAcao').classList.add('bg-brand-orange');
-            document.getElementById('btnAcao').classList.remove('bg-brand-success');
+            document.getElementById('btnAcao').classList.replace('bg-brand-success', 'bg-brand-orange');
             ['labelCompra','labelVenda','labelDeclaracao'].forEach(id=>document.getElementById(id).classList.add('hidden'));
             ['resTempo','resDepreciacao','resValorContabil','resGanho','resImposto'].forEach(id=>document.getElementById(id).innerText = '-');
         }

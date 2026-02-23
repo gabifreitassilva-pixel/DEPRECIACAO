@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#1a1a1a">
     <title>FISCO CAPITAL - Gestão de Ativos</title>
-    <link rel="manifest" href="manifest.json">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -295,13 +294,21 @@
             if(t === 'historico') renderHistorico();
         }
 
-        function calcularTempoExacto(dtIn, dtFim) {
-            let d1 = new Date(dtIn);
-            let d2 = new Date(dtFim);
-            let anos = d2.getFullYear() - d1.getFullYear();
-            let meses = d2.getMonth() - d1.getMonth();
-            if (meses < 0) { anos--; meses += 12; }
-            return { anos, meses, totalMeses: (anos * 12) + meses };
+        // NOVA LÓGICA: MÊS FECHADO (Ignora o dia da compra/venda)
+        function calcularTempoMesFechado(dtIn, dtFim) {
+            let [anoIn, mesIn] = dtIn.split('-').map(Number);
+            let [anoFim, mesFim] = dtFim.split('-').map(Number);
+
+            // Calcula a diferença em meses considerando o mês de entrada e o mês de saída integrais
+            let totalMeses = ((anoFim - anoIn) * 12) + (mesFim - mesIn) + 1;
+            
+            // Proteção caso a data final inserida seja menor que a data de entrada
+            if (totalMeses < 0) totalMeses = 0; 
+
+            let anos = Math.floor(totalMeses / 12);
+            let meses = totalMeses % 12;
+
+            return { anos, meses, totalMeses };
         }
 
         async function toBase64(f) {
@@ -329,7 +336,9 @@
 
             if(!f.empresa || !f.dtAq || !f.dtVenda || f.vlrAq <= 0) { alert("Preencha os campos obrigatórios."); return; }
 
-            const tempo = calcularTempoExacto(f.dtAq, f.dtVenda);
+            // Usando a nova função de Mês Fechado
+            const tempo = calcularTempoMesFechado(f.dtAq, f.dtVenda);
+            
             let depAc = ((f.vlrAq * (f.taxa/100)) / 12) * tempo.totalMeses;
             if(depAc > f.vlrAq) depAc = f.vlrAq;
             const vlrCont = f.vlrAq - depAc;
@@ -338,7 +347,7 @@
             const venc = new Date(new Date(f.dtVenda).getFullYear(), new Date(f.dtVenda).getMonth() + 2, 0);
 
             // Card Lateral
-            document.getElementById('resTempo').innerText = `${tempo.anos} anos e ${tempo.meses} meses`;
+            document.getElementById('resTempo').innerText = `${tempo.anos} anos e ${tempo.meses} meses (Total: ${tempo.totalMeses} meses)`;
             document.getElementById('resDepreciacao').innerText = valorParaReal(depAc);
             document.getElementById('resValorContabil').innerText = valorParaReal(vlrCont);
             document.getElementById('resGanho').innerText = valorParaReal(ganho > 0 ? ganho : 0);
@@ -347,10 +356,10 @@
             document.getElementById('cardResultado').classList.replace('opacity-50', 'opacity-100');
             document.getElementById('cardResultado').classList.remove('pointer-events-none');
 
-            // EXPLICAÇÃO PASSO A PASSO (SEUS TEXTOS ORIGINAIS)
+            // EXPLICAÇÃO PASSO A PASSO
             document.getElementById('areaExplicacao').classList.remove('hidden');
             document.getElementById('passoAPasso').innerHTML = `
-                <p><strong>1. Cálculo da Depreciação:</strong> A Receita Federal entende que seu bem perde valor com o tempo. Para um item de <strong>${f.taxa}%/ano</strong>, ele deprecia cerca de <strong>${((f.taxa/12).toFixed(2))}% ao mês</strong>. Em ${tempo.totalMeses} meses (${tempo.anos}a e ${tempo.meses}m), o bem perdeu ${valorParaReal(depAc)} do seu valor original.</p>
+                <p><strong>1. Cálculo da Depreciação (Mês Fechado):</strong> A Receita Federal entende que seu bem perde valor com o tempo. Para um item de <strong>${f.taxa}%/ano</strong>, ele deprecia cerca de <strong>${((f.taxa/12).toFixed(2))}% ao mês</strong>. Em ${tempo.totalMeses} meses inteiros contados, o bem perdeu ${valorParaReal(depAc)} do seu valor original.</p>
                 <p><strong>2. O que é Valor Contábil?</strong> É o "valor real" do bem para o fisco hoje. <br>
                 <span class="text-white italic">Fórmula: Valor Compra (${valorParaReal(f.vlrAq)}) - Depreciação Acumulada (${valorParaReal(depAc)}) = <strong class="text-brand-orange">${valorParaReal(vlrCont)}</strong>.</span><br>
                 Este é o valor que a Receita Federal estima que o bem vale no seu balanço no momento da venda.</p>
